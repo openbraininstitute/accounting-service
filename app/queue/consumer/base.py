@@ -17,7 +17,7 @@ from app.constants import EventStatus
 from app.db.session import database_session_manager
 from app.logger import get_logger
 from app.queue.utils import create_default_sqs_client, get_queue_url
-from app.repositories.queue_message import EventRepository
+from app.repositories.event import EventRepository
 
 L = get_logger(__name__)
 
@@ -71,7 +71,7 @@ class QueueConsumer(ABC):
         async with database_session_manager.session() as db:
             repo = EventRepository(db=db)
             try:
-                result_id = await self._consume(msg=msg, db=db)
+                usage_id = await self._consume(msg=msg, db=db)
             except Exception:
                 self.logger.exception("Error processing message")
                 # ensure that any pending change is rolled back
@@ -88,7 +88,7 @@ class QueueConsumer(ABC):
                     msg=msg,
                     queue_name=self._queue_name,
                     status=EventStatus.COMPLETED,
-                    result_id=result_id,
+                    usage_id=usage_id,
                 )
                 return True
 
