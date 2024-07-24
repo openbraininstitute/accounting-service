@@ -7,7 +7,6 @@ from sqlalchemy import and_, true
 
 from app.constants import AccountType
 from app.db.model import Account
-from app.logger import L
 from app.repository.base import BaseRepository
 from app.schema.domain import Accounts, ProjAccount, RsvAccount, SysAccount, VlabAccount
 from app.utils import create_uuid
@@ -109,7 +108,6 @@ class AccountRepository(BaseRepository):
         return Accounts(vlab=vlab, proj=proj, rsv=rsv)
 
     async def _add_generic_account(self, **kwargs) -> Account:
-        L.warning("kwargs: {}", kwargs)
         return (
             await self.db.execute(sa.insert(Account).values(kwargs).returning(Account))
         ).scalar_one()
