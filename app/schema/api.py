@@ -17,17 +17,17 @@ class ReservationRequest(BaseModel):
     subtype: str | None = None
 
 
-class ShortJobsReservationRequest(ReservationRequest):
-    """ShortJobsReservationRequest."""
+class ShortJobReservationRequest(ReservationRequest):
+    """ShortJobReservationRequest."""
 
-    type: Literal[ServiceType.SHORT_JOBS]
+    type: Literal[ServiceType.SHORT_JOB]
     count: int
 
 
-class LongJobsReservationRequest(ReservationRequest):
-    """LongJobsReservationRequest."""
+class LongJobReservationRequest(ReservationRequest):
+    """LongJobReservationRequest."""
 
-    type: Literal[ServiceType.LONG_JOBS]
+    type: Literal[ServiceType.LONG_JOB]
     instances: int = 1
     instance_type: str | None = None
 

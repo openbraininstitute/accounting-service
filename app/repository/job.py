@@ -81,9 +81,7 @@ class JobRepository(BaseRepository):
         res = await self.db.scalars(query)
         return res.all()
 
-    async def get_storage_jobs_running(
-        self, *, proj_ids: list[UUID] | None = None
-    ) -> list[StartedJob]:
+    async def get_storage_running(self, *, proj_ids: list[UUID] | None = None) -> list[StartedJob]:
         """Get the jobs of type storage not finished yet, partially charged or not.
 
         There should be only one record per project, but this isn't enforced.
@@ -97,7 +95,7 @@ class JobRepository(BaseRepository):
         rows = (await self.db.execute(query)).scalars().all()
         return [StartedJob.model_validate(row) for row in rows]
 
-    async def get_storage_jobs_finished_to_be_charged(
+    async def get_storage_finished_to_be_charged(
         self, *, proj_ids: list[UUID] | None = None
     ) -> list[StartedJob]:
         """Get the jobs of type storage finished, not charged or only partially charged."""
@@ -125,7 +123,7 @@ class JobRepository(BaseRepository):
         during the transaction, the records will be selected again in the next round.
         """
         query = sa.select(Job).where(
-            Job.service_type == ServiceType.LONG_JOBS,
+            Job.service_type == ServiceType.LONG_JOB,
             Job.started_at != null(),
             or_(
                 Job.last_charged_at != Job.finished_at,
@@ -142,7 +140,7 @@ class JobRepository(BaseRepository):
     ) -> list[StartedJob]:
         """Get the short jobs to be charged."""
         query = sa.select(Job).where(
-            Job.service_type == ServiceType.SHORT_JOBS,
+            Job.service_type == ServiceType.SHORT_JOB,
             Job.started_at != null(),
             Job.finished_at != null(),
             Job.last_charged_at == null(),

@@ -46,11 +46,11 @@ async def _select_ledger_rows(db, job_id):
 
 
 @pytest.mark.usefixtures("_db_account")
-async def test_charge_storage_jobs(db):
+async def test_charge_storage(db):
     repos = RepositoryGroup(db)
 
     # no jobs
-    result = await test_module.charge_storage_jobs(repos, jobs=[])
+    result = await test_module.charge_storage(repos, jobs=[])
 
     # new job
     job_id = create_uuid()
@@ -60,7 +60,7 @@ async def test_charge_storage_jobs(db):
     job = await _select_job(db, job_id)
     assert job.last_charged_at is None
 
-    result = await test_module.charge_storage_jobs(repos, jobs=[job])
+    result = await test_module.charge_storage(repos, jobs=[job])
     assert result == ChargeStorageResult(success=1)
     job = await _select_job(db, job_id)
     assert job.last_charged_at is not None
@@ -68,7 +68,7 @@ async def test_charge_storage_jobs(db):
     assert len(rows) == 2
 
     # running job
-    result = await test_module.charge_storage_jobs(repos, jobs=[job])
+    result = await test_module.charge_storage(repos, jobs=[job])
     assert result == ChargeStorageResult(success=1)
     job = await _select_job(db, job_id)
     assert job.last_charged_at is not None
@@ -83,7 +83,7 @@ async def test_charge_storage_jobs(db):
     job = await _select_job(db, job_id)
     assert job.last_charged_at is None
 
-    result = await test_module.charge_storage_jobs(repos, jobs=[job])
+    result = await test_module.charge_storage(repos, jobs=[job])
     assert result == ChargeStorageResult(success=1)
     job = await _select_job(db, job_id)
     assert job.last_charged_at is not None

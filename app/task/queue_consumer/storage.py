@@ -1,4 +1,4 @@
-"""Short jobs consumer module."""
+"""Storage consumer module."""
 
 from typing import Any
 from uuid import UUID

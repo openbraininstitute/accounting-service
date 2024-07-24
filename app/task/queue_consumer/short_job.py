@@ -1,4 +1,4 @@
-"""Short jobs consumer module."""
+"""Short job consumer module."""
 
 from typing import Any
 from uuid import UUID
@@ -12,8 +12,8 @@ from app.schema.queue import ShortJobEvent
 from app.task.queue_consumer.base import QueueConsumer
 
 
-class ShortJobsQueueConsumer(QueueConsumer):
-    """Short jobs queue consumer."""
+class ShortJobQueueConsumer(QueueConsumer):
+    """Short job queue consumer."""
 
     async def _consume(self, msg: dict[str, Any], db: AsyncSession) -> UUID:
         """Consume the message."""

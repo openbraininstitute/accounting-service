@@ -1,4 +1,4 @@
-"""Long jobs consumer module."""
+"""Long job consumer module."""
 
 from typing import Any
 from uuid import UUID
@@ -42,8 +42,8 @@ async def _handle_finished(repos: RepositoryGroup, event: LongJobEvent, accounts
     )
 
 
-class LongJobsQueueConsumer(QueueConsumer):
-    """Long jobs queue consumer."""
+class LongJobQueueConsumer(QueueConsumer):
+    """Long job queue consumer."""
 
     async def _consume(self, msg: dict[str, Any], db: AsyncSession) -> UUID:
         """Consume the message."""

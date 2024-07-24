@@ -15,6 +15,7 @@ MAX_TS = datetime(2100, 1, 1, tzinfo=UTC).timestamp() * 1000
 
 @validate_call
 def _convert_timestamp(value: Annotated[float, Field(gt=MIN_TS, lt=MAX_TS)]) -> datetime:
+    """Convert the provided value in unix time in milliseconds to datetime with timezone."""
     return datetime.fromtimestamp(value / 1000, tz=UTC)
 
 
@@ -34,7 +35,7 @@ class StorageEvent(BaseModel):
 class ShortJobEvent(BaseModel):
     """ShortJobEvent."""
 
-    type: Literal[ServiceType.SHORT_JOBS]
+    type: Literal[ServiceType.SHORT_JOB]
     subtype: str
     proj_id: UUID
     job_id: UUID
@@ -45,7 +46,7 @@ class ShortJobEvent(BaseModel):
 class LongJobEvent(BaseModel):
     """LongJobEvent."""
 
-    type: Literal[ServiceType.LONG_JOBS]
+    type: Literal[ServiceType.LONG_JOB]
     subtype: str
     proj_id: UUID
     job_id: UUID

@@ -4,8 +4,8 @@ import sqlalchemy as sa
 from app.constants import ServiceType
 from app.db.model import Job, Journal, Ledger
 from app.repository.group import RepositoryGroup
-from app.schema.domain import ChargeLongJobsResult
-from app.service import charge_long_jobs as test_module
+from app.schema.domain import ChargeShortJobResult
+from app.service import charge_short_job as test_module
 from app.utils import create_uuid, utcnow
 
 from tests.constants import PROJ_ID, VLAB_ID
@@ -19,7 +19,7 @@ async def _insert_job(db, job_id, units, started_at):
                     "id": job_id,
                     "vlab_id": VLAB_ID,
                     "proj_id": PROJ_ID,
-                    "service_type": ServiceType.LONG_JOBS,
+                    "service_type": ServiceType.SHORT_JOB,
                     "units": int(units),
                     "started_at": started_at,
                     "last_alive_at": started_at,
@@ -51,67 +51,30 @@ async def _select_ledger_rows(db, job_id):
 
 
 @pytest.mark.usefixtures("_db_account")
-async def test_charge_long_jobs(db):
+async def test_charge_short_job(db):
     repos = RepositoryGroup(db)
 
     # no jobs
-    result = await test_module.charge_long_jobs(repos)
-    assert result == ChargeLongJobsResult(
-        unfinished_uncharged=0,
-        unfinished_charged=0,
-        finished_uncharged=0,
-        finished_charged=0,
-        finished_overcharged=0,
-    )
-
+    result = await test_module.charge_short_job(repos)
+    assert result == ChargeShortJobResult()
     # new job
     job_id = create_uuid()
     now = utcnow()
-    await _insert_job(db, job_id, units=0, started_at=now)
+    await _insert_job(db, job_id, units=10, started_at=now)
+
+    result = await test_module.charge_short_job(repos)
+    assert result == ChargeShortJobResult(success=0)
 
     job = await _select_job(db, job_id)
     assert job.last_charged_at is None
 
-    result = await test_module.charge_long_jobs(repos)
-    assert result == ChargeLongJobsResult(
-        unfinished_uncharged=1,
-        unfinished_charged=0,
-        finished_uncharged=0,
-        finished_charged=0,
-        finished_overcharged=0,
-    )
-    job = await _select_job(db, job_id)
-    assert job.last_charged_at is not None
-    rows = await _select_ledger_rows(db, job_id)
-    assert len(rows) == 2
-
-    # unfinished_charged job
-    result = await test_module.charge_long_jobs(repos)
-    assert result == ChargeLongJobsResult(
-        unfinished_uncharged=0,
-        unfinished_charged=1,
-        finished_uncharged=0,
-        finished_charged=0,
-        finished_overcharged=0,
-    )
-    job = await _select_job(db, job_id)
-    assert job.last_charged_at is not None
-    rows = await _select_ledger_rows(db, job_id)
-    assert len(rows) == 2
-
-    # finished_charged job
+    # finished job
     now = utcnow()
     job = await _update_job(db, job_id, finished_at=now)
     assert job.finished_at == now
 
-    result = await test_module.charge_long_jobs(repos)
-    assert result == ChargeLongJobsResult(
-        unfinished_uncharged=0,
-        unfinished_charged=0,
-        finished_uncharged=0,
-        finished_charged=1,
-        finished_overcharged=0,
-    )
+    result = await test_module.charge_short_job(repos)
+    assert result == ChargeShortJobResult(success=1)
     job = await _select_job(db, job_id)
     assert job.last_charged_at is not None
     rows = await _select_ledger_rows(db, job_id)

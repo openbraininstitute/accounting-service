@@ -6,22 +6,31 @@ from enum import StrEnum, auto
 D0 = Decimal(0)
 
 
-class EventStatus(StrEnum):
+class HyphenatedStrEnum(StrEnum):
+    """Enum where members are also (and must be) strings."""
+
+    @staticmethod
+    def _generate_next_value_(name: str, start: int, count: int, last_values: list[str]) -> str:  # noqa: ARG004
+        """Return the hyphenated lower-cased version of the member name."""
+        return name.lower().replace("_", "-")
+
+
+class EventStatus(HyphenatedStrEnum):
     """Queue Message Status."""
 
     COMPLETED = auto()
     FAILED = auto()
 
 
-class ServiceType(StrEnum):
+class ServiceType(HyphenatedStrEnum):
     """Service Type."""
 
     STORAGE = auto()
-    SHORT_JOBS = auto()
-    LONG_JOBS = auto()
+    SHORT_JOB = auto()
+    LONG_JOB = auto()
 
 
-class LongJobStatus(StrEnum):
+class LongJobStatus(HyphenatedStrEnum):
     """Long Job Status."""
 
     STARTED = auto()
@@ -29,7 +38,7 @@ class LongJobStatus(StrEnum):
     FINISHED = auto()
 
 
-class AccountType(StrEnum):
+class AccountType(HyphenatedStrEnum):
     """Account Type."""
 
     SYS = auto()
@@ -38,14 +47,14 @@ class AccountType(StrEnum):
     RSV = auto()
 
 
-class TransactionType(StrEnum):
+class TransactionType(HyphenatedStrEnum):
     """Transaction Type."""
 
-    TOPUP = auto()  # from SYS to VLAB
+    TOP_UP = auto()  # from SYS to VLAB
     ASSIGN = auto()  # from VLAB to PROJ, or from PROJ to VLAB
     RESERVE = auto()  # from PROJ to RSV
     RELEASE = auto()  # from RSV to PROJ
-    CHARGE_SHORT_JOBS = auto()  # from RSV to SYS, or from PROJ to SYS
-    CHARGE_LONG_JOBS = auto()  # from RSV to SYS, or from PROJ to SYS
+    CHARGE_SHORT_JOB = auto()  # from RSV to SYS, or from PROJ to SYS
+    CHARGE_LONG_JOB = auto()  # from RSV to SYS, or from PROJ to SYS
     CHARGE_STORAGE = auto()  # from RSV to SYS, or from PROJ to SYS
     REFUND = auto()  # from SYS to PROJ

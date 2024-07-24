@@ -6,7 +6,7 @@ from app.constants import D0, TransactionType
 from app.db.utils import try_nested
 from app.logger import L
 from app.repository.group import RepositoryGroup
-from app.schema.domain import ChargeShortJobsResult, StartedJob
+from app.schema.domain import ChargeShortJobResult, StartedJob
 from app.service.pricing import calculate_running_cost
 from app.utils import utcnow
 
@@ -44,7 +44,7 @@ async def _charge_generic(
             debited_from=accounts.rsv.id,
             credited_to=system_account.id,
             transaction_datetime=last_charged_at,
-            transaction_type=TransactionType.CHARGE_SHORT_JOBS,
+            transaction_type=TransactionType.CHARGE_SHORT_JOB,
             job_id=job.id,
             properties={"reason": f"{reason}:charge_reservation"},
         )
@@ -54,7 +54,7 @@ async def _charge_generic(
             debited_from=accounts.proj.id,
             credited_to=system_account.id,
             transaction_datetime=last_charged_at,
-            transaction_type=TransactionType.CHARGE_SHORT_JOBS,
+            transaction_type=TransactionType.CHARGE_SHORT_JOB,
             job_id=job.id,
             properties={"reason": f"{reason}:charge_project"},
         )
@@ -76,7 +76,7 @@ async def _charge_generic(
     )
 
 
-async def charge_short_jobs(repos: RepositoryGroup) -> ChargeShortJobsResult:
+async def charge_short_job(repos: RepositoryGroup) -> ChargeShortJobResult:
     """Charge for short jobs.
 
     Args:
@@ -92,7 +92,7 @@ async def charge_short_jobs(repos: RepositoryGroup) -> ChargeShortJobsResult:
         result.success += 1
 
     now = utcnow()
-    result = ChargeShortJobsResult()
+    result = ChargeShortJobResult()
     jobs = await repos.job.get_short_jobs_to_be_charged()
     for job in jobs:
         async with try_nested(repos.db, on_error=_on_error, on_success=_on_success):

@@ -45,17 +45,17 @@ class Settings(BaseSettings):
     CHARGE_STORAGE_MIN_CHARGING_INTERVAL: float = 3600
     CHARGE_STORAGE_MIN_CHARGING_AMOUNT: Decimal = Decimal("0.000001")
 
-    CHARGE_LONG_JOBS_LOOP_SLEEP: float = 60
-    CHARGE_LONG_JOBS_ERROR_SLEEP: float = 60
-    CHARGE_LONG_JOBS_MIN_CHARGING_INTERVAL: float = 10
-    CHARGE_LONG_JOBS_MIN_CHARGING_AMOUNT: Decimal = Decimal("0.000001")
+    CHARGE_LONG_JOB_LOOP_SLEEP: float = 60
+    CHARGE_LONG_JOB_ERROR_SLEEP: float = 60
+    CHARGE_LONG_JOB_MIN_CHARGING_INTERVAL: float = 10
+    CHARGE_LONG_JOB_MIN_CHARGING_AMOUNT: Decimal = Decimal("0.000001")
 
-    CHARGE_SHORT_JOBS_LOOP_SLEEP: float = 60
-    CHARGE_SHORT_JOBS_ERROR_SLEEP: float = 60
+    CHARGE_SHORT_JOB_LOOP_SLEEP: float = 60
+    CHARGE_SHORT_JOB_ERROR_SLEEP: float = 60
 
     SQS_STORAGE_QUEUE_NAME: str = "storage.fifo"
-    SQS_SHORT_JOBS_QUEUE_NAME: str = "short-jobs.fifo"
-    SQS_LONG_JOBS_QUEUE_NAME: str = "long-jobs.fifo"
+    SQS_SHORT_JOB_QUEUE_NAME: str = "short-job.fifo"
+    SQS_LONG_JOB_QUEUE_NAME: str = "long-job.fifo"
     SQS_CLIENT_ERROR_SLEEP: float = 10
 
     DB_ENGINE: str = "postgresql+asyncpg"

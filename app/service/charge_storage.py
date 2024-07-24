@@ -70,7 +70,7 @@ async def _charge_one(
     )
 
 
-async def charge_storage_jobs(
+async def charge_storage(
     repos: RepositoryGroup,
     jobs: Sequence[StartedJob],
     min_charging_interval: float = 0.0,
