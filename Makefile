@@ -35,7 +35,7 @@ build:  ## Build the Docker image
 	docker compose build app
 
 publish: build  ## Publish the Docker image to DockerHub
-	docker --debug compose push --dry-run app
+	docker compose push app
 
 run: export COMPOSE_PROFILES=run
 run: build  ## Run the application in Docker
