@@ -55,8 +55,10 @@ async def accounting_error_handler(
 ) -> JSONResponse:
     """Handle accounting errors."""
     L.error("Error: %r, cause: %r", exc, exc.__cause__)
+    # forward the http error code from upstream
+    status_code = exc.http_status_code or status.HTTP_500_INTERNAL_SERVER_ERROR
     return JSONResponse(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        status_code=status_code,
         content={"message": f"Error: {exc.__class__.__name__}"},
     )
 
