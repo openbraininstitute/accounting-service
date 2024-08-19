@@ -76,17 +76,16 @@ class OneshotSession:
             response.raise_for_status()
         except httpx.RequestError as exc:
             errmsg = f"Error while requesting {exc.request.url!r}"
-            raise AccountingReservationError(errmsg) from exc
+            raise AccountingReservationError(message=errmsg) from exc
         except httpx.HTTPStatusError as exc:
-            errmsg = (
-                f"Error response {exc.response.status_code} while requesting {exc.request.url!r}"
-            )
-            raise AccountingReservationError(errmsg) from exc
+            status_code = exc.response.status_code
+            errmsg = f"Error response {status_code} while requesting {exc.request.url!r}"
+            raise AccountingReservationError(message=errmsg, http_status_code=status_code) from exc
         try:
             self._job_id = UUID(response.json()["job_id"])
         except Exception as exc:
             errmsg = "Error while parsing the response"
-            raise AccountingReservationError(errmsg) from exc
+            raise AccountingReservationError(message=errmsg) from exc
 
     def _send_usage(self) -> None:
         """Send usage to accounting."""
@@ -107,12 +106,11 @@ class OneshotSession:
             response.raise_for_status()
         except httpx.RequestError as exc:
             errmsg = f"Error while requesting {exc.request.url!r}"
-            raise AccountingUsageError(errmsg) from exc
+            raise AccountingUsageError(message=errmsg) from exc
         except httpx.HTTPStatusError as exc:
-            errmsg = (
-                f"Error response {exc.response.status_code} while requesting {exc.request.url!r}"
-            )
-            raise AccountingUsageError(errmsg) from exc
+            status_code = exc.response.status_code
+            errmsg = f"Error response {status_code} while requesting {exc.request.url!r}"
+            raise AccountingUsageError(message=errmsg, http_status_code=status_code) from exc
 
     def __enter__(self) -> Self:
         """Initialize when entering the context manager."""
