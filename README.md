@@ -45,7 +45,7 @@ See the [Demo app](demo/app) for a working example integrated in a simple FastAP
 If you installed `tox`, you can set the required env variables and run the demo with:
 
 ```bash
-export ACCOUNTING_BASE_URL=http://127.0.0.1:8100/api
+export ACCOUNTING_BASE_URL=http://127.0.0.1:8100
 export UVICORN_PORT=8000
 tox -e demo
 ```

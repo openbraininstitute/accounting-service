@@ -9,7 +9,7 @@ from obp_accounting_sdk.errors import (
     InsufficientFundsError,
 )
 
-BASE_URL = "http://test/api"
+BASE_URL = "http://test"
 PROJ_ID = "00000000-0000-0000-0000-000000000001"
 JOB_ID = "00000000-0000-0000-0000-000000000002"
 

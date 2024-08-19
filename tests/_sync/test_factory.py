@@ -6,7 +6,7 @@ from obp_accounting_sdk import OneshotSession
 from obp_accounting_sdk._sync import factory as test_module
 from obp_accounting_sdk.constants import ServiceSubtype
 
-BASE_URL = "http://test/api"
+BASE_URL = "http://test"
 PROJ_ID = "00000000-0000-0000-0000-000000000001"
 
 
