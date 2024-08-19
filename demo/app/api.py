@@ -3,9 +3,10 @@
 import logging
 from collections.abc import AsyncIterator
 from contextlib import aclosing, asynccontextmanager
-from typing import Any
+from typing import Annotated, Any
+from uuid import UUID
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Header
 from starlette import status
 from starlette.requests import Request
 from starlette.responses import JSONResponse
@@ -67,13 +68,13 @@ async def accounting_error_handler(
 async def query(
     query_request: QueryRequest,
     accounting_session_factory: AccountingSessionFactoryDep,
+    project_id: Annotated[UUID | None, Header()],
 ) -> QueryResponse:
     """Execute a query."""
-    proj_id = "00000000-0000-0000-0000-000000000001"
     estimated_count = len(query_request.input_text) * 3
     async with accounting_session_factory.oneshot_session(
         subtype=ServiceSubtype.ML_LLM,
-        proj_id=proj_id,
+        proj_id=project_id,
         count=estimated_count,
     ) as acc_session:
         output_text = await run_query(query_request.input_text)

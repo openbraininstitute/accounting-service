@@ -42,9 +42,22 @@ In the example above:
 
 See the [Demo app](demo/app) for a working example integrated in a simple FastAPI app.
 
-If you installed `tox`, you can run the demo with:
+If you installed `tox`, you can set the required env variables and run the demo with:
 
-```commandline
+```bash
 export ACCOUNTING_BASE_URL=http://127.0.0.1:8100/api
+export UVICORN_PORT=8000
 tox -e demo
+```
+
+and call the endpoint after setting a valid project-id with:
+
+```bash
+export PROJECT_ID=8eb248a8-672c-4158-9365-b95286cba796
+curl -vs "http://127.0.0.1:$UVICORN_PORT/query" \
+-H "content-type: application/json" \
+-H "project-id: $PROJECT_ID" \
+--data-binary @- <<EOF
+{"input_text": "my query"}
+EOF
 ```
