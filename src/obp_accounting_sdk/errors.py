@@ -1,14 +1,23 @@
-"""Errors."""
+"""Accounting errors."""
 
 from dataclasses import dataclass
 
 
-class InsufficientFundsError(Exception):
+class BaseAccountingError(Exception):
+    """BaseAccountingError."""
+
+    def __str__(self) -> str:
+        """Return the representation value of the exception."""
+        return self.__repr__()
+
+
+@dataclass(kw_only=True)
+class InsufficientFundsError(BaseAccountingError):
     """InsufficientFundsError."""
 
 
 @dataclass(kw_only=True)
-class AccountingReservationError(Exception):
+class AccountingReservationError(BaseAccountingError):
     """AccountingReservationError."""
 
     message: str
@@ -16,7 +25,7 @@ class AccountingReservationError(Exception):
 
 
 @dataclass(kw_only=True)
-class AccountingUsageError(Exception):
+class AccountingUsageError(BaseAccountingError):
     """AccountingUsageError."""
 
     message: str
