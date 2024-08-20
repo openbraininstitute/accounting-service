@@ -82,7 +82,7 @@ class AsyncOneshotSession:
             errmsg = f"Error response {status_code} while requesting {exc.request.url!r}"
             raise AccountingReservationError(message=errmsg, http_status_code=status_code) from exc
         try:
-            self._job_id = UUID(response.json()["job_id"])
+            self._job_id = UUID(response.json()["data"]["job_id"])
         except Exception as exc:
             errmsg = "Error while parsing the response"
             raise AccountingReservationError(message=errmsg) from exc
