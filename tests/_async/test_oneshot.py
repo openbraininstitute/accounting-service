@@ -16,12 +16,12 @@ JOB_ID = "00000000-0000-0000-0000-000000000002"
 
 async def test_oneshot_session_success(httpx_mock):
     httpx_mock.add_response(
-        json={"job_id": JOB_ID},
+        json={"message": "", "data": {"job_id": JOB_ID}},
         method="POST",
         url=f"{BASE_URL}/reservation/oneshot",
     )
     httpx_mock.add_response(
-        json={},
+        json={"message": "", "data": None},
         method="POST",
         url=f"{BASE_URL}/usage/oneshot",
     )
@@ -63,7 +63,7 @@ async def test_oneshot_session_with_insufficient_funds(httpx_mock):
 
 async def test_oneshot_session_with_payload_error(httpx_mock):
     httpx_mock.add_response(
-        json={},  # missing job_id
+        json={"message": "", "data": {}},  # missing job_id
         method="POST",
         url=f"{BASE_URL}/reservation/oneshot",
     )
@@ -117,7 +117,7 @@ async def test_oneshot_session_with_reservation_error(httpx_mock):
 
 async def test_oneshot_session_with_usage_timeout(httpx_mock):
     httpx_mock.add_response(
-        json={"job_id": JOB_ID},
+        json={"message": "", "data": {"job_id": JOB_ID}},
         method="POST",
         url=f"{BASE_URL}/reservation/oneshot",
     )
@@ -140,7 +140,7 @@ async def test_oneshot_session_with_usage_timeout(httpx_mock):
 
 async def test_oneshot_session_with_usage_error(httpx_mock):
     httpx_mock.add_response(
-        json={"job_id": JOB_ID},
+        json={"message": "", "data": {"job_id": JOB_ID}},
         method="POST",
         url=f"{BASE_URL}/reservation/oneshot",
     )
@@ -163,7 +163,7 @@ async def test_oneshot_session_with_usage_error(httpx_mock):
 
 async def test_oneshot_session_improperly_used(httpx_mock):
     httpx_mock.add_response(
-        json={"job_id": JOB_ID},
+        json={"message": "", "data": {"job_id": JOB_ID}},
         method="POST",
         url=f"{BASE_URL}/reservation/oneshot",
     )
@@ -186,7 +186,7 @@ async def test_oneshot_session_improperly_used(httpx_mock):
 
 async def test_oneshot_session_with_application_error(httpx_mock, caplog):
     httpx_mock.add_response(
-        json={"job_id": JOB_ID},
+        json={"message": "", "data": {"job_id": JOB_ID}},
         method="POST",
         url=f"{BASE_URL}/reservation/oneshot",
     )
