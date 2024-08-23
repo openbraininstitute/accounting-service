@@ -10,6 +10,7 @@ import httpx
 
 from obp_accounting_sdk.constants import ServiceSubtype, ServiceType
 from obp_accounting_sdk.errors import (
+    AccountingCancellationError,
     AccountingReservationError,
     AccountingUsageError,
     InsufficientFundsError,
@@ -75,11 +76,11 @@ class AsyncOneshotSession:
                 raise InsufficientFundsError
             response.raise_for_status()
         except httpx.RequestError as exc:
-            errmsg = f"Error while requesting {exc.request.url!r}"
+            errmsg = f"Error in request {exc.request.method} {exc.request.url}"
             raise AccountingReservationError(message=errmsg) from exc
         except httpx.HTTPStatusError as exc:
             status_code = exc.response.status_code
-            errmsg = f"Error response {status_code} while requesting {exc.request.url!r}"
+            errmsg = f"Error in response to {exc.request.method} {exc.request.url}: {status_code}"
             raise AccountingReservationError(message=errmsg, http_status_code=status_code) from exc
         try:
             self._job_id = UUID(response.json()["data"]["job_id"])
@@ -87,12 +88,31 @@ class AsyncOneshotSession:
             errmsg = "Error while parsing the response"
             raise AccountingReservationError(message=errmsg) from exc
 
+    async def _cancel_reservation(self) -> None:
+        """Cancel the reservation."""
+        if self._job_id is None:
+            errmsg = "Cannot cancel a reservation without a job id"
+            raise RuntimeError(errmsg)
+        L.info("Cancelling reservation for %s", self._job_id)
+        try:
+            response = await self._http_client.delete(
+                f"{self._base_url}/reservation/oneshot/{self._job_id}"
+            )
+            response.raise_for_status()
+        except httpx.RequestError as exc:
+            errmsg = f"Error in request {exc.request.method} {exc.request.url}"
+            raise AccountingCancellationError(message=errmsg) from exc
+        except httpx.HTTPStatusError as exc:
+            status_code = exc.response.status_code
+            errmsg = f"Error in response to {exc.request.method} {exc.request.url}: {status_code}"
+            raise AccountingCancellationError(message=errmsg, http_status_code=status_code) from exc
+
     async def _send_usage(self) -> None:
         """Send usage to accounting."""
         if self._job_id is None:
             errmsg = "Cannot send usage before making a successful reservation"
             raise RuntimeError(errmsg)
-        L.info("Sending usage")
+        L.info("Sending usage for %s", self._job_id)
         data = {
             "type": self._service_type,
             "subtype": self._service_subtype,
@@ -105,11 +125,11 @@ class AsyncOneshotSession:
             response = await self._http_client.post(f"{self._base_url}/usage/oneshot", json=data)
             response.raise_for_status()
         except httpx.RequestError as exc:
-            errmsg = f"Error while requesting {exc.request.url!r}"
+            errmsg = f"Error in request {exc.request.method} {exc.request.url}"
             raise AccountingUsageError(message=errmsg) from exc
         except httpx.HTTPStatusError as exc:
             status_code = exc.response.status_code
-            errmsg = f"Error response {status_code} while requesting {exc.request.url!r}"
+            errmsg = f"Error in response to {exc.request.method} {exc.request.url}: {status_code}"
             raise AccountingUsageError(message=errmsg, http_status_code=status_code) from exc
 
     async def __aenter__(self) -> Self:
@@ -127,4 +147,8 @@ class AsyncOneshotSession:
         if exc_type is None:
             await self._send_usage()
         else:
-            L.warning(f"Unhandled exception {exc_type.__name__}, not sending usage")
+            L.warning(f"Unhandled application error {exc_type.__name__}, cancelling reservation")
+            try:
+                await self._cancel_reservation()
+            except AccountingCancellationError as ex:
+                L.warning("Error while cancelling the reservation: %r", ex)
