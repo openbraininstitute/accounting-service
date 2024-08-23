@@ -1,3 +1,5 @@
+import re
+
 import httpx
 import pytest
 
@@ -86,7 +88,10 @@ async def test_oneshot_session_with_reservation_timeout(httpx_mock):
         url=f"{BASE_URL}/reservation/oneshot",
     )
     async with httpx.AsyncClient() as http_client:
-        with pytest.raises(AccountingReservationError, match="Error while requesting"):
+        with pytest.raises(
+            AccountingReservationError,
+            match=f"Error in request POST {BASE_URL}/reservation/oneshot",
+        ):
             async with test_module.AsyncOneshotSession(
                 http_client=http_client,
                 base_url=BASE_URL,
@@ -104,7 +109,10 @@ async def test_oneshot_session_with_reservation_error(httpx_mock):
         url=f"{BASE_URL}/reservation/oneshot",
     )
     async with httpx.AsyncClient() as http_client:
-        with pytest.raises(AccountingReservationError, match="Error response 400 while requesting"):
+        with pytest.raises(
+            AccountingReservationError,
+            match=f"Error in response to POST {BASE_URL}/reservation/oneshot: 400",
+        ):
             async with test_module.AsyncOneshotSession(
                 http_client=http_client,
                 base_url=BASE_URL,
@@ -127,7 +135,10 @@ async def test_oneshot_session_with_usage_timeout(httpx_mock):
         url=f"{BASE_URL}/usage/oneshot",
     )
     async with httpx.AsyncClient() as http_client:
-        with pytest.raises(AccountingUsageError, match="Error while requesting"):
+        with pytest.raises(
+            AccountingUsageError,
+            match=f"Error in request POST {BASE_URL}/usage/oneshot",
+        ):
             async with test_module.AsyncOneshotSession(
                 http_client=http_client,
                 base_url=BASE_URL,
@@ -150,7 +161,10 @@ async def test_oneshot_session_with_usage_error(httpx_mock):
         url=f"{BASE_URL}/usage/oneshot",
     )
     async with httpx.AsyncClient() as http_client:
-        with pytest.raises(AccountingUsageError, match="Error response 400 while requesting"):
+        with pytest.raises(
+            AccountingUsageError,
+            match=f"Error in response to POST {BASE_URL}/usage/oneshot: 400",
+        ):
             async with test_module.AsyncOneshotSession(
                 http_client=http_client,
                 base_url=BASE_URL,
@@ -179,6 +193,8 @@ async def test_oneshot_session_improperly_used(httpx_mock):
             RuntimeError, match="Cannot send usage before making a successful reservation"
         ):
             await session._send_usage()
+        with pytest.raises(RuntimeError, match="Cannot cancel a reservation without a job id"):
+            await session._cancel_reservation()
         await session._make_reservation()
         with pytest.raises(RuntimeError, match="Cannot make a reservation more than once"):
             await session._make_reservation()
@@ -189,6 +205,10 @@ async def test_oneshot_session_with_application_error(httpx_mock, caplog):
         json={"message": "", "data": {"job_id": JOB_ID}},
         method="POST",
         url=f"{BASE_URL}/reservation/oneshot",
+    )
+    httpx_mock.add_response(
+        method="DELETE",
+        url=f"{BASE_URL}/reservation/oneshot/{JOB_ID}",
     )
 
     async def func():
@@ -205,4 +225,75 @@ async def test_oneshot_session_with_application_error(httpx_mock, caplog):
                 count=10,
             ):
                 await func()
-    assert "Unhandled exception RuntimeError, not sending usage" in caplog.text
+    assert "Unhandled application error RuntimeError, cancelling reservation" in caplog.text
+    assert "Error while cancelling the reservation" not in caplog.text
+
+
+async def test_oneshot_session_with_application_error_and_cancellation_error(httpx_mock, caplog):
+    httpx_mock.add_response(
+        json={"message": "", "data": {"job_id": JOB_ID}},
+        method="POST",
+        url=f"{BASE_URL}/reservation/oneshot",
+    )
+    httpx_mock.add_response(
+        status_code=400,
+        method="DELETE",
+        url=f"{BASE_URL}/reservation/oneshot/{JOB_ID}",
+    )
+
+    async def func():
+        errmsg = "Application error"
+        raise RuntimeError(errmsg)
+
+    async with httpx.AsyncClient() as http_client:
+        with pytest.raises(Exception, match="Application error"):
+            async with test_module.AsyncOneshotSession(
+                http_client=http_client,
+                base_url=BASE_URL,
+                subtype=ServiceSubtype.ML_LLM,
+                proj_id=PROJ_ID,
+                count=10,
+            ):
+                await func()
+    assert "Unhandled application error RuntimeError, cancelling reservation" in caplog.text
+    assert "Error while cancelling the reservation" in caplog.text
+    assert re.search(
+        f"AccountingCancellationError.*"
+        f"Error in response to DELETE {BASE_URL}/reservation/oneshot/{JOB_ID}: 400",
+        caplog.text,
+    )
+
+
+async def test_oneshot_session_with_application_error_and_cancellation_timeout(httpx_mock, caplog):
+    httpx_mock.add_response(
+        json={"message": "", "data": {"job_id": JOB_ID}},
+        method="POST",
+        url=f"{BASE_URL}/reservation/oneshot",
+    )
+    httpx_mock.add_exception(
+        httpx.ReadTimeout("Unable to read within timeout"),
+        method="DELETE",
+        url=f"{BASE_URL}/reservation/oneshot/{JOB_ID}",
+    )
+
+    async def func():
+        errmsg = "Application error"
+        raise RuntimeError(errmsg)
+
+    async with httpx.AsyncClient() as http_client:
+        with pytest.raises(Exception, match="Application error"):
+            async with test_module.AsyncOneshotSession(
+                http_client=http_client,
+                base_url=BASE_URL,
+                subtype=ServiceSubtype.ML_LLM,
+                proj_id=PROJ_ID,
+                count=10,
+            ):
+                await func()
+    assert "Unhandled application error RuntimeError, cancelling reservation" in caplog.text
+    assert "Error while cancelling the reservation" in caplog.text
+    assert re.search(
+        f"AccountingCancellationError.*"
+        f"Error in request DELETE {BASE_URL}/reservation/oneshot/{JOB_ID}",
+        caplog.text,
+    )

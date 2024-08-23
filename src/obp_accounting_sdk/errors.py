@@ -25,6 +25,14 @@ class AccountingReservationError(BaseAccountingError):
 
 
 @dataclass(kw_only=True)
+class AccountingCancellationError(BaseAccountingError):
+    """AccountingCancellationError."""
+
+    message: str
+    http_status_code: int | None = None
+
+
+@dataclass(kw_only=True)
 class AccountingUsageError(BaseAccountingError):
     """AccountingUsageError."""
 
