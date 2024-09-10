@@ -18,13 +18,13 @@ async def test_charge_oneshot(db):
     now = utcnow()
 
     # no jobs
-    result = await test_module.charge_oneshot(repos)
+    result = await test_module.charge_oneshot(repos, min_datetime=None)
     assert result == ChargeOneshotResult()
     # new job
     job_id = create_uuid()
     await _insert_oneshot_job(db, job_id, reserved_count=100, reserved_at=now)
 
-    result = await test_module.charge_oneshot(repos)
+    result = await test_module.charge_oneshot(repos, min_datetime=None)
     assert result == ChargeOneshotResult(success=0)
 
     job = await _select_job(db, job_id)
@@ -43,7 +43,7 @@ async def test_charge_oneshot(db):
     assert job.started_at == now
     assert job.finished_at == now
 
-    result = await test_module.charge_oneshot(repos)
+    result = await test_module.charge_oneshot(repos, min_datetime=None)
     assert result == ChargeOneshotResult(success=1)
     job = await _select_job(db, job_id)
     assert job.last_charged_at is not None

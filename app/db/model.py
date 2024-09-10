@@ -61,7 +61,6 @@ class Job(Base):
     service_type: Mapped[ServiceType]
     service_subtype: Mapped[ServiceSubtype]
     created_at: Mapped[CREATED_AT]
-    updated_at: Mapped[UPDATED_AT]
     reserved_at: Mapped[datetime | None]
     started_at: Mapped[datetime | None]
     last_alive_at: Mapped[datetime | None]
@@ -128,6 +127,18 @@ class Price(Base):
     vlab_id: Mapped[UUID | None] = mapped_column(ForeignKey("account.id"), index=True)
     created_at: Mapped[CREATED_AT]
     updated_at: Mapped[UPDATED_AT]
+
+
+class TaskRegistry(Base):
+    """TaskRegistry table."""
+
+    __tablename__ = "task_registry"
+
+    task_name: Mapped[str] = mapped_column(primary_key=True)
+    last_run: Mapped[datetime | None]
+    last_duration: Mapped[float] = mapped_column(server_default=text("0"))
+    last_errors: Mapped[int] = mapped_column(server_default=text("0"))
+    last_active_job: Mapped[datetime | None]
 
 
 Index(

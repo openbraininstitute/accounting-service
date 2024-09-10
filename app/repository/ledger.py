@@ -88,7 +88,7 @@ class LedgerRepository(BaseRepository):
             .where(
                 Journal.job_id == job_id,
                 Account.account_type == AccountType.RSV,
-                (Ledger.account_id == account_id) if account_id else true(),
+                Ledger.account_id == account_id if account_id else true(),
             )
         )
         result = (await self.db.execute(query)).scalar_one() or D0

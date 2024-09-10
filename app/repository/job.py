@@ -6,7 +6,6 @@ from uuid import UUID
 
 import sqlalchemy as sa
 from sqlalchemy import null, or_, true
-from sqlalchemy.dialects import postgresql as pg
 
 from app.constants import ServiceType
 from app.db.model import Job
@@ -27,17 +26,6 @@ class JobRepository(BaseRepository):
     async def insert_job(self, job_id: UUID, **kwargs) -> Job:
         """Insert a new job."""
         query = sa.insert(Job).values(id=job_id, **kwargs).returning(Job)
-        return (await self.db.execute(query)).scalar_one()
-
-    async def upsert_job(self, job_id: UUID, *, query_update_fields: list[str], **kwargs) -> Job:
-        """Insert or update a job."""
-        update_values = {key: kwargs[key] for key in query_update_fields}
-        query = (
-            pg.insert(Job)
-            .values(id=job_id, **kwargs)
-            .on_conflict_do_update(index_elements=["id"], set_=update_values)
-            .returning(Job)
-        )
         return (await self.db.execute(query)).scalar_one()
 
     async def update_job(self, job_id: UUID, vlab_id: UUID, proj_id: UUID, **kwargs) -> Job:
@@ -83,7 +71,12 @@ class JobRepository(BaseRepository):
         res = await self.db.scalars(query)
         return res.all()
 
-    async def get_storage_running(self, *, proj_ids: list[UUID] | None = None) -> list[StartedJob]:
+    async def get_storage_running(
+        self,
+        *,
+        proj_ids: list[UUID] | None = None,
+        min_datetime: datetime | None = None,
+    ) -> list[StartedJob]:
         """Get the jobs of type storage not finished yet, partially charged or not.
 
         There should be only one record per project, but this isn't enforced.
@@ -93,12 +86,16 @@ class JobRepository(BaseRepository):
             Job.service_type == ServiceType.STORAGE,
             Job.finished_at == null(),
             Job.proj_id.in_(proj_ids) if proj_ids is not None else true(),
+            Job.created_at >= min_datetime if min_datetime else true(),
         )
         rows = (await self.db.execute(query)).scalars().all()
         return [StartedJob.model_validate(row) for row in rows]
 
     async def get_storage_finished_to_be_charged(
-        self, *, proj_ids: list[UUID] | None = None
+        self,
+        *,
+        proj_ids: list[UUID] | None = None,
+        min_datetime: datetime | None = None,
     ) -> list[StartedJob]:
         """Get the jobs of type storage finished, not charged or only partially charged."""
         query = sa.select(Job).where(
@@ -109,12 +106,16 @@ class JobRepository(BaseRepository):
             ),
             Job.finished_at != null(),
             Job.proj_id.in_(proj_ids) if proj_ids is not None else true(),
+            Job.created_at >= min_datetime if min_datetime else true(),
         )
         rows = (await self.db.execute(query)).scalars().all()
         return [StartedJob.model_validate(row) for row in rows]
 
     async def get_longrun_to_be_charged(
-        self, *, proj_ids: list[UUID] | None = None
+        self,
+        *,
+        proj_ids: list[UUID] | None = None,
+        min_datetime: datetime | None = None,
     ) -> list[StartedJob]:
         """Get the longrun jobs to be charged.
 
@@ -133,12 +134,16 @@ class JobRepository(BaseRepository):
                 Job.finished_at == null(),
             ),
             Job.proj_id.in_(proj_ids) if proj_ids is not None else true(),
+            Job.created_at >= min_datetime if min_datetime else true(),
         )
         rows = (await self.db.execute(query)).scalars().all()
         return [StartedJob.model_validate(row) for row in rows]
 
     async def get_oneshot_to_be_charged(
-        self, *, proj_ids: list[UUID] | None = None
+        self,
+        *,
+        proj_ids: list[UUID] | None = None,
+        min_datetime: datetime | None = None,
     ) -> list[StartedJob]:
         """Get the oneshot jobs to be charged."""
         query = sa.select(Job).where(
@@ -147,6 +152,7 @@ class JobRepository(BaseRepository):
             Job.finished_at != null(),
             Job.last_charged_at == null(),
             Job.proj_id.in_(proj_ids) if proj_ids is not None else true(),
+            Job.created_at >= min_datetime if min_datetime else true(),
         )
         rows = (await self.db.execute(query)).scalars().all()
         return [StartedJob.model_validate(row) for row in rows]

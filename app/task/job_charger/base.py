@@ -2,8 +2,14 @@
 
 import asyncio
 from abc import ABC, abstractmethod
+from datetime import datetime, timedelta
 
+from app.db.session import database_session_manager
+from app.db.utils import current_timestamp
 from app.logger import L
+from app.repository.group import RepositoryGroup
+from app.schema.domain import TaskResult
+from app.utils import Timer
 
 
 class BaseTask(ABC):
@@ -52,6 +58,10 @@ class BaseTask(ABC):
         return self._success + self._failure
 
     @abstractmethod
+    async def _prepare(self) -> None:
+        """Prepare the task before entering the loop."""
+
+    @abstractmethod
     async def _run_once(self) -> None:
         """Execute one loop."""
 
@@ -63,6 +73,7 @@ class BaseTask(ABC):
         """
         self.logger.info("Starting {}", self.name)
         await asyncio.sleep(self._initial_delay)
+        await self._prepare()
         while True:
             try:
                 await self._run_once()
@@ -76,3 +87,52 @@ class BaseTask(ABC):
             if 0 < limit <= self._counter:
                 break
             await asyncio.sleep(sleep)
+
+
+class RegisteredTask(BaseTask, ABC):
+    """RegisteredTask."""
+
+    def __init__(self, *, min_rolling_window: float, **kwargs) -> None:
+        """Init the task."""
+        super().__init__(**kwargs)
+        self._min_rolling_window = min_rolling_window
+
+    async def _prepare(self) -> None:
+        async with database_session_manager.session() as db:
+            repos = RepositoryGroup(db=db)
+            if await repos.task_registry.populate_task(self.name):
+                self.logger.info("Populating the task registry")
+
+    async def _run_once(self) -> None:
+        async with database_session_manager.session() as db:
+            repos = RepositoryGroup(db=db)
+            if not (task := await repos.task_registry.get_locked_task(self.name)):
+                self.logger.info("Skipping task because the task registry is locked")
+                return
+            with Timer() as timer:
+                if task.last_run is None:
+                    min_datetime = None
+                else:
+                    min_datetime = task.last_run - timedelta(seconds=self._min_rolling_window)
+                    if task.last_active_job and task.last_active_job < min_datetime:
+                        min_datetime = task.last_active_job
+                task_result = await self._run_once_logic(repos, min_datetime)
+            last_run = await current_timestamp(db)
+            await repos.task_registry.update_task(
+                self.name,
+                last_run=last_run,
+                last_duration=timer.duration,
+                last_errors=task_result.failure,
+                last_active_job=task_result.last_active_job,
+            )
+
+    @abstractmethod
+    async def _run_once_logic(
+        self, repos: RepositoryGroup, min_datetime: datetime | None
+    ) -> TaskResult:
+        """Execute the actual task logic call.
+
+        Args:
+            repos: RepositoryGroup instance.
+            min_datetime: minimum creation datetime for filtering jobs, or None to not filter.
+        """

@@ -131,12 +131,13 @@ async def _charge_generic(
     )
 
 
-async def charge_longrun(
+async def charge_longrun(  # noqa: C901
     repos: RepositoryGroup,
     min_charging_interval: float = 0.0,
     min_charging_amount: Decimal = D0,
     expiration_interval: float = 3600,
     transaction_datetime: datetime | None = None,
+    min_datetime: datetime | None = None,
 ) -> ChargeLongrunResult:
     """Charge for longrun jobs.
 
@@ -149,17 +150,22 @@ async def charge_longrun(
         expiration_interval: time since last_alive_at, after which the job is considered expired.
         transaction_datetime: datetime of the transaction, or None to use the current timestamp.
             If the job is still running, it's used also to calculate the duration to be charged.
+        min_datetime: minimum creation datetime for filtering jobs, or None to not filter.
     """
 
     def _on_error() -> None:
         L.exception("Error processing longrun job {}", job.id)
         result.failure += 1
+        result.update_last_active_job(job.created_at)
+
+    def _on_success() -> None:
+        result.success += 1
 
     now = transaction_datetime or utcnow()
     result = ChargeLongrunResult()
-    jobs = await repos.job.get_longrun_to_be_charged()
+    jobs = await repos.job.get_longrun_to_be_charged(min_datetime=min_datetime)
     for job in jobs:
-        async with try_nested(repos.db, on_error=_on_error):
+        async with try_nested(repos.db, on_error=_on_error, on_success=_on_success):
             match job:
                 case StartedJob(
                     last_alive_at=datetime() as last_alive_at,
@@ -212,6 +218,7 @@ async def charge_longrun(
                         min_charging_amount=min_charging_amount,
                     )
                     result.unfinished_uncharged += 1
+                    result.update_last_active_job(job.created_at)
                 case StartedJob(last_charged_at=datetime() as last_charged_at, finished_at=None):
                     # Charge running time since the last charge, set last_charged_at=now
                     await _charge_generic(
@@ -227,6 +234,7 @@ async def charge_longrun(
                         min_charging_amount=min_charging_amount,
                     )
                     result.unfinished_charged += 1
+                    result.update_last_active_job(job.created_at)
                 case StartedJob(last_charged_at=None, finished_at=datetime() as finished_at):
                     # Charge fixed costs and full running time, set last_charged_at=finished_at,
                     # release reservation

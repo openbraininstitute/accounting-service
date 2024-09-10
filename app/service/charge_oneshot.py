@@ -79,12 +79,14 @@ async def _charge_generic(
     )
 
 
-async def charge_oneshot(repos: RepositoryGroup) -> ChargeOneshotResult:
+async def charge_oneshot(
+    repos: RepositoryGroup, min_datetime: datetime | None
+) -> ChargeOneshotResult:
     """Charge for oneshot jobs.
 
     Args:
         repos: repository group instance.
-        jobs: optional sequence of jobs.
+        min_datetime: minimum creation datetime for filtering jobs, or None to not filter.
     """
 
     def _on_error() -> None:
@@ -95,7 +97,7 @@ async def charge_oneshot(repos: RepositoryGroup) -> ChargeOneshotResult:
         result.success += 1
 
     result = ChargeOneshotResult()
-    jobs = await repos.job.get_oneshot_to_be_charged()
+    jobs = await repos.job.get_oneshot_to_be_charged(min_datetime=min_datetime)
     for job in jobs:
         async with try_nested(repos.db, on_error=_on_error, on_success=_on_success):
             await _charge_generic(

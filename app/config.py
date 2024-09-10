@@ -52,23 +52,29 @@ class Settings(BaseSettings):
     LOG_CATCH: bool = True
     LOG_STANDARD_LOGGER: dict[str, str] = {"root": "INFO"}
 
-    MAX_PAST_EVENT_TIMEDELTA: int = 35 * 24 * 60 * 60  # 35 days in seconds
-    MAX_FUTURE_EVENT_TIMEDELTA: int = 5 * 60  # 5 minutes in seconds
+    MAX_PAST_EVENT_TIMEDELTA: int = 3600 * 24 * 35  # 35 days in seconds
+    MAX_FUTURE_EVENT_TIMEDELTA: int = 60 * 5  # 5 minutes in seconds
 
     CHARGE_STORAGE_LOOP_SLEEP: float = 600
     CHARGE_STORAGE_ERROR_SLEEP: float = 60
     CHARGE_STORAGE_MIN_CHARGING_INTERVAL: float = 3600
     CHARGE_STORAGE_MIN_CHARGING_AMOUNT: Decimal = Decimal("0.000001")
+    #: Minimum number of seconds to go back in time when selecting storage jobs.
+    CHARGE_STORAGE_MIN_ROLLING_WINDOW: float = 3600 * 24 * 7  # 7 days in seconds
 
     CHARGE_LONGRUN_LOOP_SLEEP: float = 600
     CHARGE_LONGRUN_ERROR_SLEEP: float = 60
     CHARGE_LONGRUN_MIN_CHARGING_INTERVAL: float = 60
     CHARGE_LONGRUN_MIN_CHARGING_AMOUNT: Decimal = Decimal("0.000001")
-    # time since last_alive_at, after which the job is considered expired
+    #: Time since last_alive_at, after which the job is considered expired.
     CHARGE_LONGRUN_EXPIRATION_INTERVAL: float = 3600
+    #: Minimum number of seconds to go back in time when selecting longrun jobs.
+    CHARGE_LONGRUN_MIN_ROLLING_WINDOW: float = 3600 * 24 * 7  # 7 days in seconds
 
     CHARGE_ONESHOT_LOOP_SLEEP: float = 600
     CHARGE_ONESHOT_ERROR_SLEEP: float = 60
+    #: Minimum number of seconds to go back in time when selecting oneshot jobs.
+    CHARGE_ONESHOT_MIN_ROLLING_WINDOW: float = 3600 * 24 * 7  # 7 days in seconds
 
     SQS_STORAGE_QUEUE_NAME: str = "storage.fifo"
     SQS_ONESHOT_QUEUE_NAME: str = "oneshot.fifo"

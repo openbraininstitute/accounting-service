@@ -31,10 +31,10 @@ class ReportRepository(BaseRepository):
             .select_from(Job)
             .where(
                 Job.finished_at == Job.last_charged_at,
-                (Job.vlab_id == vlab_id) if vlab_id else true(),
-                (Job.proj_id == proj_id) if proj_id else true(),
-                (Job.started_at >= started_after) if started_after else true(),
-                (Job.started_at < started_before) if started_before else true(),
+                Job.vlab_id == vlab_id if vlab_id else true(),
+                Job.proj_id == proj_id if proj_id else true(),
+                Job.started_at >= started_after if started_after else true(),
+                Job.started_at < started_before if started_before else true(),
             )
         )
         count_query = base_query.with_only_columns(func.count())
