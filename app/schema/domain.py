@@ -77,7 +77,16 @@ class StartedJob(BaseJob):
 
 
 @dataclass(kw_only=True)
-class ChargeLongrunResult:
+class TaskResult:
+    """Result of a generic task."""
+
+    success: int = 0
+    failure: int = 0
+    state: dict | None = None
+
+
+@dataclass(kw_only=True)
+class ChargeLongrunResult(TaskResult):
     """Result of charge_longrun."""
 
     unfinished_uncharged: int = 0
@@ -87,20 +96,13 @@ class ChargeLongrunResult:
     finished_overcharged: int = 0
     expired_uncharged: int = 0
     expired_charged: int = 0
-    failure: int = 0
 
 
 @dataclass(kw_only=True)
-class ChargeOneshotResult:
+class ChargeOneshotResult(TaskResult):
     """Result of charge_oneshot."""
 
-    success: int = 0
-    failure: int = 0
-
 
 @dataclass(kw_only=True)
-class ChargeStorageResult:
+class ChargeStorageResult(TaskResult):
     """Result of charge_storage."""
-
-    success: int = 0
-    failure: int = 0

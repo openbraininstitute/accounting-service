@@ -131,7 +131,7 @@ async def _charge_generic(
     )
 
 
-async def charge_longrun(
+async def charge_longrun(  # noqa: C901
     repos: RepositoryGroup,
     min_charging_interval: float = 0.0,
     min_charging_amount: Decimal = D0,
@@ -155,11 +155,14 @@ async def charge_longrun(
         L.exception("Error processing longrun job {}", job.id)
         result.failure += 1
 
+    def _on_success() -> None:
+        result.success += 1
+
     now = transaction_datetime or utcnow()
     result = ChargeLongrunResult()
     jobs = await repos.job.get_longrun_to_be_charged()
     for job in jobs:
-        async with try_nested(repos.db, on_error=_on_error):
+        async with try_nested(repos.db, on_error=_on_error, on_success=_on_success):
             match job:
                 case StartedJob(
                     last_alive_at=datetime() as last_alive_at,
