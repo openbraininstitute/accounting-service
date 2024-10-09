@@ -4,7 +4,7 @@ from collections.abc import Iterable
 from logging.config import fileConfig
 
 import alembic_postgresql_enum  # noqa: F401
-from sqlalchemy import pool
+from sqlalchemy import pool, text
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
@@ -15,6 +15,15 @@ from app.config import settings
 from app.db.model import Base
 
 L = logging.getLogger("alembic.env")
+
+# server settings to reduce possible service disruptions while running the migration
+SERVER_SETTINGS = {
+    # Abort any statement that takes more than the specified amount of time
+    "statement_timeout": "6000",
+    # Abort any statement that waits longer than the specified amount of time while
+    # attempting to acquire a lock on a table, index, row, or other database object
+    "lock_timeout": "4000",
+}
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -87,6 +96,8 @@ def do_run_migrations(connection: Connection) -> None:
     )
 
     with context.begin_transaction():
+        # obtain an exclusive transaction-level advisory lock, waiting if necessary
+        connection.execute(text("SELECT pg_advisory_xact_lock(12345)"))
         context.run_migrations()
 
 
@@ -94,18 +105,11 @@ async def run_async_migrations() -> None:
     """In this scenario we need to create an Engine
     and associate a connection with the context.
     """
-    server_settings = {
-        # Abort any statement that takes more than the specified amount of time
-        "statement_timeout": "6000",
-        # Abort any statement that waits longer than the specified amount of time while
-        # attempting to acquire a lock on a table, index, row, or other database object
-        "lock_timeout": "4000",
-    }
     connectable = async_engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
-        connect_args={"server_settings": server_settings},
+        connect_args={"server_settings": SERVER_SETTINGS},
     )
 
     async with connectable.connect() as connection:
