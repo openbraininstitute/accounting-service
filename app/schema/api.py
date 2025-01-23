@@ -105,6 +105,7 @@ class BaseMakeReservationIn(BaseModel):
     """BaseMakeReservationIn."""
 
     proj_id: UUID
+    user_id: UUID
     type: ServiceType
     subtype: ServiceSubtype
 

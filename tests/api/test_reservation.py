@@ -10,6 +10,7 @@ async def test_make_oneshot_reservation(api_client, mock_uuid):
     # make a valid reservation
     request_payload = {
         "proj_id": PROJ_ID,
+        "user_id": "00000000-0000-0000-0000-000000000001",
         "type": ServiceType.ONESHOT,
         "subtype": ServiceSubtype.ML_LLM,
         "count": "1000000",
@@ -27,6 +28,7 @@ async def test_make_oneshot_reservation(api_client, mock_uuid):
     # try to make a new reservation with insufficient funds because of the previous reservation
     request_payload = {
         "proj_id": PROJ_ID,
+        "user_id": "00000000-0000-0000-0000-000000000001",
         "type": ServiceType.ONESHOT,
         "subtype": ServiceSubtype.ML_LLM,
         "count": "40000000",
@@ -47,6 +49,7 @@ async def test_make_longrun_reservation(api_client, mock_uuid):
     # make a valid reservation
     request_payload = {
         "proj_id": PROJ_ID,
+        "user_id": "00000000-0000-0000-0000-000000000001",
         "type": ServiceType.LONGRUN,
         "subtype": ServiceSubtype.SINGLE_CELL_SIM,
         "instances": "2",
@@ -66,6 +69,7 @@ async def test_make_longrun_reservation(api_client, mock_uuid):
     # try to make a new reservation with insufficient funds because of the previous reservation
     request_payload = {
         "proj_id": PROJ_ID,
+        "user_id": "00000000-0000-0000-0000-000000000001",
         "type": ServiceType.LONGRUN,
         "subtype": ServiceSubtype.SINGLE_CELL_SIM,
         "instances": "12",

@@ -9,6 +9,7 @@ class UUIDS:
     SYS: UUID
     VLAB: list[UUID]
     PROJ: list[UUID]
+    USER: list[UUID]
     RSV: list[UUID]
     JOB: list[UUID]
 
@@ -21,6 +22,10 @@ UUIDS = UUIDS(
     PROJ=[
         UUID("2cb0ea5a-0e6f-4080-a43c-25a4f0dd0ea2"),
         UUID("cccb843e-0b5e-4aed-88b0-6f218a27b6ae"),
+    ],
+    USER=[
+        UUID("76693c58-8f5d-45b8-bb41-dbc3599402f5"),
+        UUID("b2807649-3621-4865-b156-456c5a4ec376"),
     ],
     RSV=[
         UUID("58835fd6-b62d-40bb-97b1-7e071fc35c94"),
@@ -36,6 +41,8 @@ UUIDS = UUIDS(
 SYS_ID = str(UUIDS.SYS)
 VLAB_ID = str(UUIDS.VLAB[0])
 PROJ_ID = str(UUIDS.PROJ[0])
+USER_ID = str(UUIDS.USER[0])
+USER_ID_2 = str(UUIDS.USER[1])
 RSV_ID = str(UUIDS.RSV[0])
 PROJ_ID_2 = str(UUIDS.PROJ[1])
 RSV_ID_2 = str(UUIDS.RSV[1])
