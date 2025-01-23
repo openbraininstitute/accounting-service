@@ -53,6 +53,7 @@ class ReportRepository(BaseRepository):
                 Job.service_type.label("type"),
                 Job.service_subtype.label("subtype"),
                 Job.user_id,
+                Job.group_id,
                 Job.reserved_at,
                 Job.started_at,
                 Job.finished_at,

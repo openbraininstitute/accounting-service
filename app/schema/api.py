@@ -105,7 +105,7 @@ class BaseMakeReservationIn(BaseModel):
     """BaseMakeReservationIn."""
 
     proj_id: UUID
-    user_id: UUID
+    group_id: UUID | None = None
     type: ServiceType
     subtype: ServiceSubtype
 
@@ -113,6 +113,7 @@ class BaseMakeReservationIn(BaseModel):
 class MakeOneshotReservationIn(BaseMakeReservationIn):
     """MakeOneshotReservationIn."""
 
+    user_id: UUID
     type: Literal[ServiceType.ONESHOT]
     count: Annotated[int, Field(ge=0)]
 
@@ -120,6 +121,7 @@ class MakeOneshotReservationIn(BaseMakeReservationIn):
 class MakeLongrunReservationIn(BaseMakeReservationIn):
     """MakeLongrunReservationIn."""
 
+    user_id: UUID
     type: Literal[ServiceType.LONGRUN]
     duration: Annotated[int, Field(ge=0)]
     instances: Annotated[int, Field(ge=0)]
@@ -267,6 +269,7 @@ class OneshotReportOut(BaseModel, from_attributes=True):
     """OneshotReportOut."""
 
     job_id: UUID
+    group_id: UUID | None = None
     vlab_id: UUID | None = None
     proj_id: UUID | None = None
     type: Literal[ServiceType.ONESHOT]
@@ -283,6 +286,7 @@ class LongrunReportOut(BaseModel, from_attributes=True):
     """LongrunReportOut."""
 
     job_id: UUID
+    group_id: UUID | None = None
     vlab_id: UUID | None = None
     proj_id: UUID | None = None
     type: Literal[ServiceType.LONGRUN]

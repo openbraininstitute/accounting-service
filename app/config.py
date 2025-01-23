@@ -60,14 +60,14 @@ class Settings(BaseSettings):
     CHARGE_STORAGE_MIN_CHARGING_INTERVAL: float = 3600
     CHARGE_STORAGE_MIN_CHARGING_AMOUNT: Decimal = Decimal("0.000001")
 
-    CHARGE_LONGRUN_LOOP_SLEEP: float = 600
+    CHARGE_LONGRUN_LOOP_SLEEP: float = 5
     CHARGE_LONGRUN_ERROR_SLEEP: float = 60
-    CHARGE_LONGRUN_MIN_CHARGING_INTERVAL: float = 60
+    CHARGE_LONGRUN_MIN_CHARGING_INTERVAL: float = 10
     CHARGE_LONGRUN_MIN_CHARGING_AMOUNT: Decimal = Decimal("0.000001")
     # time since last_alive_at, after which the job is considered expired
     CHARGE_LONGRUN_EXPIRATION_INTERVAL: float = 3600
 
-    CHARGE_ONESHOT_LOOP_SLEEP: float = 600
+    CHARGE_ONESHOT_LOOP_SLEEP: float = 5
     CHARGE_ONESHOT_ERROR_SLEEP: float = 60
 
     SQS_STORAGE_QUEUE_NAME: str = "storage.fifo"

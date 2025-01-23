@@ -12,6 +12,7 @@ class UUIDS:
     USER: list[UUID]
     RSV: list[UUID]
     JOB: list[UUID]
+    GROUP: list[UUID]
 
 
 UUIDS = UUIDS(
@@ -36,6 +37,10 @@ UUIDS = UUIDS(
         UUID("3dade995-fe19-4386-a71a-e24dacf0f0e1"),
         UUID("d2304a0d-f19e-404b-b327-211de0d515b7"),
     ],
+    GROUP=[
+        UUID("9f9ec707-5ad6-4b19-804b-f85220756b2c"),
+        UUID("fa2499af-f678-429f-ab2e-6653a0fc4b2e"),
+    ],
 )
 
 SYS_ID = str(UUIDS.SYS)
@@ -46,6 +51,8 @@ USER_ID_2 = str(UUIDS.USER[1])
 RSV_ID = str(UUIDS.RSV[0])
 PROJ_ID_2 = str(UUIDS.PROJ[1])
 RSV_ID_2 = str(UUIDS.RSV[1])
+GROUP_ID = str(UUIDS.GROUP[0])
+GROUP_ID_2 = str(UUIDS.GROUP[1])
 
 KB = 1024
 MB = 1024**2
