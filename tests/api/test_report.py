@@ -37,6 +37,7 @@ async def test_get_report(api_client, url, extra_expected_data):
             {
                 **extra_expected_data,
                 "job_id": str(UUIDS.JOB[0]),
+                "group_id": str(UUIDS.GROUP[0]),
                 "type": "oneshot",
                 "subtype": "ml-llm",
                 "amount": "0.01500",
@@ -49,6 +50,7 @@ async def test_get_report(api_client, url, extra_expected_data):
             {
                 **extra_expected_data,
                 "job_id": str(UUIDS.JOB[1]),
+                "group_id": str(UUIDS.GROUP[1]),
                 "type": "longrun",
                 "subtype": "single-cell-sim",
                 "amount": "0",  # no ledger records
