@@ -106,6 +106,7 @@ class BaseMakeReservationIn(BaseModel):
 
     proj_id: UUID
     group_id: UUID | None = None
+    user_id: UUID
     type: ServiceType
     subtype: ServiceSubtype
 
@@ -113,7 +114,6 @@ class BaseMakeReservationIn(BaseModel):
 class MakeOneshotReservationIn(BaseMakeReservationIn):
     """MakeOneshotReservationIn."""
 
-    user_id: UUID
     type: Literal[ServiceType.ONESHOT]
     count: Annotated[int, Field(ge=0)]
 
@@ -121,7 +121,6 @@ class MakeOneshotReservationIn(BaseMakeReservationIn):
 class MakeLongrunReservationIn(BaseMakeReservationIn):
     """MakeLongrunReservationIn."""
 
-    user_id: UUID
     type: Literal[ServiceType.LONGRUN]
     duration: Annotated[int, Field(ge=0)]
     instances: Annotated[int, Field(ge=0)]
