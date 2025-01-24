@@ -1,10 +1,12 @@
 from unittest.mock import patch
 
+from app.schema.domain import ChargeOneshotResult
 from app.task.job_charger import oneshot as test_module
 
 
 @patch(f"{test_module.__name__}.charge_oneshot")
 async def test_periodic_oneshot_charger_run_forever(mock_charge_oneshot):
+    mock_charge_oneshot.return_value = ChargeOneshotResult()
     task = test_module.PeriodicOneshotCharger(name="test-oneshot-charger")
     await task.run_forever(limit=1)
     assert mock_charge_oneshot.call_count == 1

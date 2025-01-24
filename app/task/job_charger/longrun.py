@@ -1,13 +1,14 @@
 """Longrun job charger."""
 
 from app.config import settings
-from app.db.session import database_session_manager
+from app.db.model import TaskRegistry
 from app.repository.group import RepositoryGroup
+from app.schema.domain import TaskResult
 from app.service.charge_longrun import charge_longrun
-from app.task.job_charger.base import BaseTask
+from app.task.job_charger.base import RegisteredTask
 
 
-class PeriodicLongrunCharger(BaseTask):
+class PeriodicLongrunCharger(RegisteredTask):
     """PeriodicLongrunCharger."""
 
     def __init__(self, name: str, initial_delay: int = 0) -> None:
@@ -19,12 +20,14 @@ class PeriodicLongrunCharger(BaseTask):
             error_sleep=settings.CHARGE_LONGRUN_ERROR_SLEEP,
         )
 
-    async def _run_once(self) -> None:  # noqa: PLR6301
-        async with database_session_manager.session() as db:
-            repos = RepositoryGroup(db=db)
-            await charge_longrun(
-                repos=repos,
-                min_charging_interval=settings.CHARGE_LONGRUN_MIN_CHARGING_INTERVAL,
-                min_charging_amount=settings.CHARGE_LONGRUN_MIN_CHARGING_AMOUNT,
-                expiration_interval=settings.CHARGE_LONGRUN_EXPIRATION_INTERVAL,
-            )
+    async def _run_once_logic(  # noqa: PLR6301
+        self,
+        repos: RepositoryGroup,
+        task: TaskRegistry,  # noqa: ARG002
+    ) -> TaskResult:
+        return await charge_longrun(
+            repos=repos,
+            min_charging_interval=settings.CHARGE_LONGRUN_MIN_CHARGING_INTERVAL,
+            min_charging_amount=settings.CHARGE_LONGRUN_MIN_CHARGING_AMOUNT,
+            expiration_interval=settings.CHARGE_LONGRUN_EXPIRATION_INTERVAL,
+        )

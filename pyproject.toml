@@ -76,6 +76,7 @@ combine-as-imports = true
 ]
 "tests/*.py" = [
     "ANN",     # Missing type annotation
+    "ARG002",  # Unused method argument
     "D",       # pydocstyle
     "ERA001",  # Found commented-out code
     "INP001",  # Missing `__init__.py`

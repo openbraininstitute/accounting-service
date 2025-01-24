@@ -1,8 +1,9 @@
 import asyncio
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
+from contextlib import AbstractAsyncContextManager, asynccontextmanager
 from datetime import datetime
 from decimal import Decimal
+from typing import Protocol
 from unittest.mock import patch
 from uuid import UUID
 
@@ -26,6 +27,10 @@ from tests.constants import PROJ_ID, PROJ_ID_2, RSV_ID, RSV_ID_2, SYS_ID, UUIDS,
 from tests.utils import truncate_tables
 
 
+class SessionFactory(Protocol):
+    def __call__(self, *, commit: bool = False) -> AbstractAsyncContextManager[AsyncSession]: ...
+
+
 @pytest.fixture(scope="session")
 def event_loop():
     loop = asyncio.new_event_loop()
@@ -44,16 +49,27 @@ async def _database_context():
 
 
 @pytest.fixture
-async def db() -> AsyncIterator[AsyncSession]:
-    async with database_session_manager.session() as session:
+async def db_session_factory() -> SessionFactory:
+    return database_session_manager.session
+
+
+@pytest.fixture
+async def db(db_session_factory) -> AsyncIterator[AsyncSession]:
+    async with db_session_factory(commit=False) as session:
+        yield session
+
+
+@pytest.fixture
+async def db2(db_session_factory) -> AsyncIterator[AsyncSession]:
+    async with db_session_factory(commit=False) as session:
         yield session
 
 
 @pytest.fixture(autouse=True)
-async def _db_cleanup(db):
+async def _db_cleanup(db_session_factory):
     yield
-    await db.rollback()
-    await truncate_tables(db)
+    async with db_session_factory(commit=True) as session:
+        await truncate_tables(session)
 
 
 @pytest.fixture

@@ -10,7 +10,6 @@ from tests.constants import PROJ_ID, VLAB_ID
 async def truncate_tables(session):
     query = text(f"""TRUNCATE {",".join(Base.metadata.tables)} RESTART IDENTITY CASCADE""")
     await session.execute(query)
-    await session.commit()
 
 
 async def _insert_oneshot_job(db, job_id, reserved_count, reserved_at):

@@ -29,7 +29,7 @@ format:  # Run formatters
 lint:  ## Run linters
 	uv run -m ruff format --check
 	uv run -m ruff check
-	uv run -m mypy app
+	uv run -m mypy app tests
 
 build:  ## Build the Docker image
 	docker compose build app

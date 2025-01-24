@@ -1,10 +1,12 @@
 from unittest.mock import patch
 
+from app.schema.domain import ChargeStorageResult
 from app.task.job_charger import storage as test_module
 
 
 @patch(f"{test_module.__name__}.charge_storage")
 async def test_periodic_storage_charger_run_forever(mock_charge_storage):
+    mock_charge_storage.return_value = ChargeStorageResult()
     task = test_module.PeriodicStorageCharger(name="test-storage-charger")
     await task.run_forever(limit=1)
     assert mock_charge_storage.call_count == 2

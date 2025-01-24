@@ -34,6 +34,7 @@ async def test_charge_longrun(db):
     result = await test_module.charge_longrun(repos, transaction_datetime=transaction_datetime)
     assert result == ChargeLongrunResult(
         unfinished_uncharged=1,
+        success=1,
     )
     job = await _select_job(db, job_id)
     assert job.last_charged_at is not None
@@ -66,6 +67,7 @@ async def test_charge_longrun(db):
     result = await test_module.charge_longrun(repos, transaction_datetime=transaction_datetime)
     assert result == ChargeLongrunResult(
         unfinished_charged=1,
+        success=1,
     )
     job = await _select_job(db, job_id)
     assert job.last_charged_at is not None
@@ -102,6 +104,7 @@ async def test_charge_longrun(db):
     result = await test_module.charge_longrun(repos, transaction_datetime=transaction_datetime)
     assert result == ChargeLongrunResult(
         finished_charged=1,
+        success=1,
     )
     job = await _select_job(db, job_id)
     assert job.last_charged_at is not None
@@ -146,6 +149,7 @@ async def test_charge_longrun_expired_uncharged(db):
     )
     assert result == ChargeLongrunResult(
         expired_uncharged=1,
+        success=1,
     )
     job = await _select_job(db, job_id)
     assert job.last_charged_at == now
@@ -198,6 +202,7 @@ async def test_charge_longrun_expired_charged(db):
     )
     assert result == ChargeLongrunResult(
         expired_charged=1,
+        success=1,
     )
     expected_amount = 3600 * Decimal("0.01")
     job = await _select_job(db, job_id)
