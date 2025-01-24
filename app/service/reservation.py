@@ -55,8 +55,10 @@ async def _make_reservation(
     job_id = create_uuid()
     await repos.job.insert_job(
         job_id=job_id,
+        group_id=reservation_request.group_id,
         vlab_id=accounts.vlab.id,
         proj_id=accounts.proj.id,
+        user_id=reservation_request.user_id,
         service_type=reservation_request.type,
         service_subtype=reservation_request.subtype,
         reserved_at=reserving_at,

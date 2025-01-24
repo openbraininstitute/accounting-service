@@ -56,8 +56,10 @@ class Job(Base):
     __tablename__ = "job"
 
     id: Mapped[UUID] = mapped_column(primary_key=True)
+    group_id: Mapped[UUID | None]
     vlab_id: Mapped[UUID] = mapped_column(ForeignKey("account.id"), index=True)
     proj_id: Mapped[UUID] = mapped_column(ForeignKey("account.id"), index=True)
+    user_id: Mapped[UUID | None]
     service_type: Mapped[ServiceType]
     service_subtype: Mapped[ServiceSubtype]
     created_at: Mapped[CREATED_AT]

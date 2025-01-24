@@ -1,5 +1,6 @@
 from decimal import Decimal
 from unittest.mock import ANY
+from uuid import UUID
 
 import pytest
 
@@ -7,13 +8,15 @@ from app.constants import D0, ServiceSubtype, ServiceType
 from app.repository import report as test_module
 from app.schema.api import PaginatedParams
 
-from tests.constants import PROJ_ID, UUIDS, VLAB_ID
+from tests.constants import GROUP_ID, GROUP_ID_2, PROJ_ID, USER_ID, UUIDS, VLAB_ID
 
 EXPECTED = [
     {
         "job_id": UUIDS.JOB[0],
+        "group_id": UUID(GROUP_ID),
         "type": ServiceType.ONESHOT,
         "subtype": ServiceSubtype.ML_LLM,
+        "user_id": UUID(USER_ID),
         "reserved_at": ANY,
         "started_at": ANY,
         "finished_at": ANY,
@@ -28,8 +31,10 @@ EXPECTED = [
     },
     {
         "job_id": UUIDS.JOB[1],
+        "group_id": UUID(GROUP_ID_2),
         "type": ServiceType.LONGRUN,
         "subtype": ServiceSubtype.SINGLE_CELL_SIM,
+        "user_id": UUID(USER_ID),
         "reserved_at": ANY,
         "started_at": ANY,
         "finished_at": ANY,
@@ -44,8 +49,10 @@ EXPECTED = [
     },
     {
         "job_id": UUIDS.JOB[2],
+        "group_id": None,
         "type": ServiceType.STORAGE,
         "subtype": ServiceSubtype.STORAGE,
+        "user_id": None,
         "reserved_at": None,
         "started_at": ANY,
         "finished_at": ANY,

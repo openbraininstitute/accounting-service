@@ -105,6 +105,8 @@ class BaseMakeReservationIn(BaseModel):
     """BaseMakeReservationIn."""
 
     proj_id: UUID
+    group_id: UUID | None = None
+    user_id: UUID
     type: ServiceType
     subtype: ServiceSubtype
 
@@ -266,6 +268,7 @@ class OneshotReportOut(BaseModel, from_attributes=True):
     """OneshotReportOut."""
 
     job_id: UUID
+    group_id: UUID | None = None
     vlab_id: UUID | None = None
     proj_id: UUID | None = None
     type: Literal[ServiceType.ONESHOT]
@@ -282,6 +285,7 @@ class LongrunReportOut(BaseModel, from_attributes=True):
     """LongrunReportOut."""
 
     job_id: UUID
+    group_id: UUID | None = None
     vlab_id: UUID | None = None
     proj_id: UUID | None = None
     type: Literal[ServiceType.LONGRUN]

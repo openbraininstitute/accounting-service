@@ -7,7 +7,7 @@ from app.constants import ServiceSubtype, ServiceType
 from app.db.model import Job
 from app.repository import job as test_module
 
-from tests.constants import PROJ_ID, VLAB_ID
+from tests.constants import PROJ_ID, USER_ID, VLAB_ID
 
 
 @pytest.mark.usefixtures("_db_account")
@@ -18,6 +18,7 @@ async def test_insert_job(db):
         job_id=UUID("e0f0cd3c-595a-47a7-b292-267124f5a8df"),
         vlab_id=UUID(VLAB_ID),
         proj_id=UUID(PROJ_ID),
+        user_id=UUID(USER_ID),
         service_type=ServiceType.STORAGE,
         service_subtype=ServiceSubtype.STORAGE,
         started_at=started_at,

@@ -2,7 +2,7 @@ import pytest
 
 from app.constants import ServiceSubtype, ServiceType
 
-from tests.constants import PROJ_ID
+from tests.constants import GROUP_ID, PROJ_ID, USER_ID
 
 
 @pytest.mark.usefixtures("_db_account", "_db_price")
@@ -10,6 +10,8 @@ async def test_make_oneshot_reservation(api_client, mock_uuid):
     # make a valid reservation
     request_payload = {
         "proj_id": PROJ_ID,
+        "user_id": USER_ID,
+        "group_id": GROUP_ID,
         "type": ServiceType.ONESHOT,
         "subtype": ServiceSubtype.ML_LLM,
         "count": "1000000",
@@ -27,6 +29,8 @@ async def test_make_oneshot_reservation(api_client, mock_uuid):
     # try to make a new reservation with insufficient funds because of the previous reservation
     request_payload = {
         "proj_id": PROJ_ID,
+        "user_id": USER_ID,
+        "group_id": GROUP_ID,
         "type": ServiceType.ONESHOT,
         "subtype": ServiceSubtype.ML_LLM,
         "count": "40000000",
@@ -47,6 +51,8 @@ async def test_make_longrun_reservation(api_client, mock_uuid):
     # make a valid reservation
     request_payload = {
         "proj_id": PROJ_ID,
+        "user_id": USER_ID,
+        "group_id": GROUP_ID,
         "type": ServiceType.LONGRUN,
         "subtype": ServiceSubtype.SINGLE_CELL_SIM,
         "instances": "2",
@@ -66,6 +72,8 @@ async def test_make_longrun_reservation(api_client, mock_uuid):
     # try to make a new reservation with insufficient funds because of the previous reservation
     request_payload = {
         "proj_id": PROJ_ID,
+        "user_id": USER_ID,
+        "group_id": GROUP_ID,
         "type": ServiceType.LONGRUN,
         "subtype": ServiceSubtype.SINGLE_CELL_SIM,
         "instances": "12",

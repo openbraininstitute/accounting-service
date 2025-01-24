@@ -22,7 +22,18 @@ from app.db.model import Account, Job, Journal, Ledger, Price
 from app.db.session import database_session_manager
 from app.utils import utcnow
 
-from tests.constants import PROJ_ID, PROJ_ID_2, RSV_ID, RSV_ID_2, SYS_ID, UUIDS, VLAB_ID
+from tests.constants import (
+    GROUP_ID,
+    GROUP_ID_2,
+    PROJ_ID,
+    PROJ_ID_2,
+    RSV_ID,
+    RSV_ID_2,
+    SYS_ID,
+    USER_ID,
+    UUIDS,
+    VLAB_ID,
+)
 from tests.utils import truncate_tables
 
 
@@ -208,8 +219,10 @@ async def _db_job(db, _db_account):
         [
             {
                 "id": UUIDS.JOB[0],
+                "group_id": GROUP_ID,
                 "vlab_id": UUIDS.VLAB[0],
                 "proj_id": UUIDS.PROJ[0],
+                "user_id": USER_ID,
                 "service_type": ServiceType.ONESHOT,
                 "service_subtype": ServiceSubtype.ML_LLM,
                 "reserved_at": dt,
@@ -223,8 +236,10 @@ async def _db_job(db, _db_account):
             },
             {
                 "id": UUIDS.JOB[1],
+                "group_id": GROUP_ID_2,
                 "vlab_id": UUIDS.VLAB[0],
                 "proj_id": UUIDS.PROJ[0],
+                "user_id": USER_ID,
                 "service_type": ServiceType.LONGRUN,
                 "service_subtype": ServiceSubtype.SINGLE_CELL_SIM,
                 "reserved_at": dt,
