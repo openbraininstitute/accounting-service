@@ -1,13 +1,14 @@
 """Oneshot job charger."""
 
 from app.config import settings
-from app.db.session import database_session_manager
+from app.db.model import TaskRegistry
 from app.repository.group import RepositoryGroup
+from app.schema.domain import TaskResult
 from app.service.charge_oneshot import charge_oneshot
-from app.task.job_charger.base import BaseTask
+from app.task.job_charger.base import RegisteredTask
 
 
-class PeriodicOneshotCharger(BaseTask):
+class PeriodicOneshotCharger(RegisteredTask):
     """PeriodicOneshotCharger."""
 
     def __init__(self, name: str, initial_delay: int = 0) -> None:
@@ -19,7 +20,9 @@ class PeriodicOneshotCharger(BaseTask):
             error_sleep=settings.CHARGE_ONESHOT_ERROR_SLEEP,
         )
 
-    async def _run_once(self) -> None:  # noqa: PLR6301
-        async with database_session_manager.session() as db:
-            repos = RepositoryGroup(db=db)
-            await charge_oneshot(repos=repos)
+    async def _run_once_logic(  # noqa: PLR6301
+        self,
+        repos: RepositoryGroup,
+        task: TaskRegistry,  # noqa: ARG002
+    ) -> TaskResult:
+        return await charge_oneshot(repos=repos)

@@ -1,9 +1,17 @@
 """Abstract task."""
 
 import asyncio
+import traceback
 from abc import ABC, abstractmethod
 
+from app.db.model import TaskRegistry
+from app.db.session import database_session_manager
+from app.db.utils import current_timestamp
 from app.logger import L
+from app.repository.group import RepositoryGroup
+from app.repository.task_registry import TaskRegistryRepository
+from app.schema.domain import TaskResult
+from app.utils import Timer
 
 
 class BaseTask(ABC):
@@ -52,6 +60,10 @@ class BaseTask(ABC):
         return self._success + self._failure
 
     @abstractmethod
+    async def _prepare(self) -> None:
+        """Prepare the task before entering the loop."""
+
+    @abstractmethod
     async def _run_once(self) -> None:
         """Execute one loop."""
 
@@ -63,6 +75,7 @@ class BaseTask(ABC):
         """
         self.logger.info("Starting {}", self.name)
         await asyncio.sleep(self._initial_delay)
+        await self._prepare()
         while True:
             try:
                 await self._run_once()
@@ -76,3 +89,49 @@ class BaseTask(ABC):
             if 0 < limit <= self._counter:
                 break
             await asyncio.sleep(sleep)
+
+
+class RegisteredTask(BaseTask, ABC):
+    """RegisteredTask."""
+
+    async def _prepare(self) -> None:
+        async with database_session_manager.session() as db:
+            task_registry_repo = TaskRegistryRepository(db=db)
+            if await task_registry_repo.populate_task(self.name):
+                self.logger.info("Populating the task registry")
+
+    async def _run_once(self) -> None:
+        async with database_session_manager.session(commit=False) as db:
+            task_registry_repo = TaskRegistryRepository(db=db)
+            if not (task := await task_registry_repo.get_locked_task(self.name)):
+                self.logger.info("Skipping task because the task registry is locked")
+                return
+            error = None
+            start_timestamp = await current_timestamp(db)
+            self.logger.info("Lock acquired at {}", start_timestamp)
+            try:
+                with Timer() as timer:
+                    # create a new session that is rolled back if any error happens inside the task
+                    async with database_session_manager.session() as task_session:
+                        repos = RepositoryGroup(db=task_session)
+                        await self._run_once_logic(repos, task)
+            except Exception:
+                error = traceback.format_exc()
+                raise
+            finally:
+                await task_registry_repo.update_task(
+                    self.name,
+                    last_run=start_timestamp,
+                    last_duration=timer.elapsed,
+                    last_error=error,
+                )
+                await db.commit()
+
+    @abstractmethod
+    async def _run_once_logic(self, repos: RepositoryGroup, task: TaskRegistry) -> TaskResult:
+        """Execute the actual task logic call.
+
+        Args:
+            repos: RepositoryGroup instance.
+            task: TaskRegistry instance.
+        """

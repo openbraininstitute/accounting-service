@@ -5,7 +5,7 @@ from uuid import UUID
 
 
 @dataclasses.dataclass(frozen=True)
-class UUIDS:
+class _UUIDS:
     SYS: UUID
     VLAB: list[UUID]
     PROJ: list[UUID]
@@ -15,7 +15,7 @@ class UUIDS:
     GROUP: list[UUID]
 
 
-UUIDS = UUIDS(
+UUIDS = _UUIDS(
     SYS=UUID("00000000-0000-0000-0000-000000000001"),
     VLAB=[
         UUID("1b3bd3f4-3441-41b0-8fae-83a30c133dc2"),

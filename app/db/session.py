@@ -33,8 +33,12 @@ class DatabaseSessionManager:
         L.info("DB engine has been closed")
 
     @asynccontextmanager
-    async def session(self) -> AsyncIterator[AsyncSession]:
-        """Yield a new database session."""
+    async def session(self, *, commit: bool = True) -> AsyncIterator[AsyncSession]:
+        """Yield a new database session.
+
+        Args:
+            commit: if True and no errors occurred, commit before closing the session.
+        """
         if not self._engine:
             err = "DB engine not initialized"
             raise RuntimeError(err)
@@ -50,7 +54,8 @@ class DatabaseSessionManager:
                 await session.rollback()
                 raise
             else:
-                await session.commit()
+                if commit:
+                    await session.commit()
 
 
 database_session_manager = DatabaseSessionManager()
