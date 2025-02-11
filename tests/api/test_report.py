@@ -37,6 +37,7 @@ async def test_get_report(api_client, url, extra_expected_data):
             {
                 **extra_expected_data,
                 "job_id": str(UUIDS.JOB[0]),
+                "user_id": str(UUIDS.USER[0]),
                 "group_id": str(UUIDS.GROUP[0]),
                 "type": "oneshot",
                 "subtype": "ml-llm",
@@ -50,6 +51,7 @@ async def test_get_report(api_client, url, extra_expected_data):
             {
                 **extra_expected_data,
                 "job_id": str(UUIDS.JOB[1]),
+                "user_id": str(UUIDS.USER[0]),
                 "group_id": str(UUIDS.GROUP[1]),
                 "type": "longrun",
                 "subtype": "single-cell-sim",

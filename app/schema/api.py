@@ -268,6 +268,7 @@ class OneshotReportOut(BaseModel, from_attributes=True):
     """OneshotReportOut."""
 
     job_id: UUID
+    user_id: UUID
     group_id: UUID | None = None
     vlab_id: UUID | None = None
     proj_id: UUID | None = None
@@ -285,6 +286,7 @@ class LongrunReportOut(BaseModel, from_attributes=True):
     """LongrunReportOut."""
 
     job_id: UUID
+    user_id: UUID
     group_id: UUID | None = None
     vlab_id: UUID | None = None
     proj_id: UUID | None = None
