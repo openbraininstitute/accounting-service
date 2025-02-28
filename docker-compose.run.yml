@@ -9,6 +9,8 @@ services:
       - APP_NAME
       - APP_VERSION
       - COMMIT_SHA
+      tags:
+      - "${IMAGE_NAME}:latest-${ENVIRONMENT}"
     ports:
     - "127.0.0.1:8100:8000"
     environment:
@@ -51,7 +53,7 @@ services:
     ports:
     - "127.0.0.1:5433:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U accounting_service"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER"]
       interval: 10s
       timeout: 5s
       retries: 3
