@@ -223,6 +223,7 @@ async def _db_job(db, _db_account):
                 "vlab_id": UUIDS.VLAB[0],
                 "proj_id": UUIDS.PROJ[0],
                 "user_id": USER_ID,
+                "name": "test job 0",
                 "service_type": ServiceType.ONESHOT,
                 "service_subtype": ServiceSubtype.ML_LLM,
                 "reserved_at": dt,

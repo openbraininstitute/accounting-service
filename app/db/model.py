@@ -2,10 +2,20 @@
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, ClassVar
+from typing import Any, ClassVar, Optional
 from uuid import UUID
 
-from sqlalchemy import DateTime, ForeignKey, Identity, Index, MetaData, SmallInteger, text, true
+from sqlalchemy import (
+    DateTime,
+    ForeignKey,
+    Identity,
+    Index,
+    MetaData,
+    SmallInteger,
+    String,
+    text,
+    true,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -59,6 +69,7 @@ class Job(Base):
     group_id: Mapped[UUID | None]
     vlab_id: Mapped[UUID] = mapped_column(ForeignKey("account.id"), index=True)
     proj_id: Mapped[UUID] = mapped_column(ForeignKey("account.id"), index=True)
+    name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     user_id: Mapped[UUID | None]
     service_type: Mapped[ServiceType]
     service_subtype: Mapped[ServiceSubtype]
