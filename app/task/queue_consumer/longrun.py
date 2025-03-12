@@ -37,19 +37,17 @@ async def _handle_running(repos: RepositoryGroup, event: LongrunEvent, accounts:
 
 
 async def _handle_finished(repos: RepositoryGroup, event: LongrunEvent, accounts: Accounts) -> Job:
-    kwargs = {
-        "last_alive_at": event.timestamp,
-        "finished_at": event.timestamp,
-    }
-
+    optional_kwargs = {}
     if event.name is not None:
-        kwargs["name"] = event.name
+        optional_kwargs["name"] = event.name
 
     return await repos.job.update_job(
         job_id=event.job_id,
         vlab_id=accounts.vlab.id,
         proj_id=accounts.proj.id,
-        **kwargs,
+        last_alive_at=event.timestamp,
+        finished_at=event.timestamp,
+        **optional_kwargs,
     )
 
 
