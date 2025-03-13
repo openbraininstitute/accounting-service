@@ -12,7 +12,6 @@ from sqlalchemy import (
     Index,
     MetaData,
     SmallInteger,
-    String,
     text,
     true,
 )
