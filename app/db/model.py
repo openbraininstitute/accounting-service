@@ -69,7 +69,7 @@ class Job(Base):
     group_id: Mapped[UUID | None]
     vlab_id: Mapped[UUID] = mapped_column(ForeignKey("account.id"), index=True)
     proj_id: Mapped[UUID] = mapped_column(ForeignKey("account.id"), index=True)
-    name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    name: Mapped[str | None]
     user_id: Mapped[UUID | None]
     service_type: Mapped[ServiceType]
     service_subtype: Mapped[ServiceSubtype]
