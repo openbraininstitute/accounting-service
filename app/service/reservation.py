@@ -59,6 +59,7 @@ async def _make_reservation(
         vlab_id=accounts.vlab.id,
         proj_id=accounts.proj.id,
         user_id=reservation_request.user_id,
+        name=reservation_request.name,
         service_type=reservation_request.type,
         service_subtype=reservation_request.subtype,
         reserved_at=reserving_at,

@@ -52,6 +52,7 @@ class OneshotQueueConsumer(QueueConsumer):
             started_at=event.timestamp,
             last_alive_at=event.timestamp,
             finished_at=event.timestamp,
+            name=event.name or job.name,
             usage_params={
                 "count": event.count,
             },

@@ -26,6 +26,7 @@ class OneshotEvent(BaseModel):
     subtype: ServiceSubtype
     proj_id: UUID
     job_id: UUID
+    name: str | None = None
     count: Annotated[int, Field(ge=0)]
     timestamp: RecentTimeStamp
 
@@ -37,6 +38,7 @@ class LongrunEvent(BaseModel):
     subtype: ServiceSubtype
     proj_id: UUID
     job_id: UUID
+    name: str | None = None
     status: LongrunStatus
     instances: Annotated[int | None, Field(ge=0)] = None
     instance_type: str | None = None
