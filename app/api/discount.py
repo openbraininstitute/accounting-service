@@ -18,7 +18,7 @@ async def create_discount(
     repos: RepoGroupDep,
     discount_request: AddDiscountIn,
 ) -> ApiResponse[Discount]:
-    """Add a new price."""
+    """Create a new discount."""
     result = await discount.create_discount(repos, discount_request)
     return ApiResponse[Discount](
         message="Discount created",
@@ -31,7 +31,7 @@ async def update_discount(
     repos: RepoGroupDep,
     discount_update_request: Discount,
 ) -> ApiResponse[Discount]:
-    """Update a price."""
+    """Update a discount."""
     result = await discount.update_discount(
         repos, discount_update_request.id, discount_update_request.model_dump()
     )
@@ -46,7 +46,7 @@ async def get_all_vlab_discounts(
     repos: RepoGroupDep,
     vlab_id: UUID,
 ) -> ApiResponse[list[Discount]]:
-    """Get alll discounts for a vlab."""
+    """Get all discounts for a vlab."""
     discounts = await discount.get_all_vlab_discounts(repos, vlab_id)
     validated_discounts = [
         Discount.model_validate(discount, from_attributes=True) for discount in discounts
