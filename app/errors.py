@@ -56,7 +56,7 @@ class EventError(Exception):
 
 
 @contextmanager
-def ensure_result(error_message: str, http_status_code: int | None = None) -> Iterator[None]:
+def ensure_result(error_message: str, http_status_code: HTTPStatus | None = None) -> Iterator[None]:
     """Context manager that raises ApiError when no results are found after executing a query."""
     try:
         yield

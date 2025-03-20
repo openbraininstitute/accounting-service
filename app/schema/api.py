@@ -154,7 +154,7 @@ class VlabAccountCreationIn(BaseModel):
 
     id: UUID
     name: str
-    balance: Decimal | None = D0
+    balance: Decimal = D0
 
 
 class ProjAccountCreationIn(BaseModel):

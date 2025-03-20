@@ -1,5 +1,6 @@
 """Discount repository module."""
 
+from collections.abc import Sequence
 from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
@@ -42,7 +43,7 @@ class DiscountRepository(BaseRepository):
         )
         return (await self.db.execute(query)).scalar_one_or_none()
 
-    async def get_all_vlab_discounts(self, vlab_id: UUID) -> list[Discount]:
+    async def get_all_vlab_discounts(self, vlab_id: UUID) -> Sequence[Discount]:
         """Retrieve all discounts (active and inactive) for a specific virtual lab.
 
         Returns discounts sorted by validity date in descending order (newest first).
@@ -74,12 +75,12 @@ class DiscountRepository(BaseRepository):
             await self.db.execute(sa.insert(Discount).values(data).returning(Discount))
         ).scalar_one()
 
-    async def update_discount(self, discount_id: UUID, data: dict[str, Any]) -> Discount | None:
+    async def update_discount(self, discount_id: int, data: dict[str, Any]) -> Discount:
         """Update an existing discount record by its ID.
 
         Args:
             discount_id: The UUID of the discount to update
-            data: Dictionary containing the fields to update (percentage, valid_from, valid_to, etc.)
+            data: Dictionary containing the fields to update (percentage, valid_from, etc.)
 
         Returns:
             Updated Discount object or None if discount not found
@@ -87,4 +88,4 @@ class DiscountRepository(BaseRepository):
         query = (
             sa.update(Discount).where(Discount.id == discount_id).values(data).returning(Discount)
         )
-        return (await self.db.execute(query)).scalar_one_or_none()
+        return (await self.db.execute(query)).scalar_one()
