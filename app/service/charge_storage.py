@@ -52,11 +52,14 @@ async def _charge_one(
         service_subtype=job.service_subtype,
         usage_datetime=charging_at,
     )
+    discount = await repos.discount.get_current_vlab_discount(accounts.vlab.id)
     usage_value = calculate_storage_usage_value(
         size=job.usage_params["size"],
         duration=total_seconds,
     )
-    total_amount = calculate_cost(price=price, usage_value=usage_value, include_fixed_cost=False)
+    total_amount = calculate_cost(
+        price=price, discount=discount, usage_value=usage_value, include_fixed_cost=False
+    )
     if not job.finished_at and abs(total_amount) < min_charging_amount:
         L.debug(
             "Not charging job {}: calculated amount too low: {:.6f}",

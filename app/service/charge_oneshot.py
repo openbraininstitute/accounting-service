@@ -25,10 +25,11 @@ async def _charge_generic(
         service_subtype=job.service_subtype,
         usage_datetime=job.reserved_at or job.started_at,
     )
+    discount = await repos.discount.get_current_vlab_discount(accounts.vlab.id)
     usage_value = calculate_oneshot_usage_value(
         count=job.usage_params["count"],
     )
-    total_amount = calculate_cost(price=price, usage_value=usage_value)
+    total_amount = calculate_cost(price=price, discount=discount, usage_value=usage_value)
     if total_amount < 0:
         err = f"Total amount for job {job.id} is negative: {total_amount}"
         raise RuntimeError(err)

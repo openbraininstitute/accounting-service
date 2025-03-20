@@ -12,6 +12,7 @@ from sqlalchemy import (
     Index,
     MetaData,
     SmallInteger,
+    func,
     text,
     true,
 )
@@ -140,6 +141,18 @@ class Price(Base):
     vlab_id: Mapped[UUID | None] = mapped_column(ForeignKey("account.id"), index=True)
     created_at: Mapped[CREATED_AT]
     updated_at: Mapped[UPDATED_AT]
+
+
+class Discount(Base):
+    """Discount table."""
+
+    __tablename__ = "discount"
+
+    id: Mapped[BIGINT] = mapped_column(Identity(), primary_key=True)
+    vlab_id: Mapped[UUID | None] = mapped_column(ForeignKey("account.id"), index=True)
+    valid_from: Mapped[datetime] = mapped_column(default=func.now())
+    valid_to: Mapped[datetime | None]
+    discount: Mapped[Decimal]
 
 
 Index(

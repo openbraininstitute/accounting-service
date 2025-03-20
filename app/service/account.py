@@ -1,5 +1,6 @@
 """Account service."""
 
+from decimal import Decimal
 from uuid import UUID
 
 from app.repository.group import RepositoryGroup
@@ -11,9 +12,11 @@ async def add_system(repos: RepositoryGroup, account_id: UUID, name: str) -> Sys
     return await repos.account.add_sys_account(account_id=account_id, name=name)
 
 
-async def add_virtual_lab(repos: RepositoryGroup, account_id: UUID, name: str) -> VlabAccount:
+async def add_virtual_lab(
+    repos: RepositoryGroup, account_id: UUID, name: str, balance: Decimal
+) -> VlabAccount:
     """Add a new virtual lab account."""
-    return await repos.account.add_vlab_account(account_id=account_id, name=name)
+    return await repos.account.add_vlab_account(account_id=account_id, name=name, balance=balance)
 
 
 async def add_project(

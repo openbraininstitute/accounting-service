@@ -42,6 +42,7 @@ async def _charge_generic(
         service_subtype=job.service_subtype,
         usage_datetime=job.reserved_at or job.started_at,
     )
+    discount = await repos.discount.get_current_vlab_discount(accounts.vlab.id)
     usage_value = calculate_longrun_usage_value(
         instances=job.usage_params["instances"],
         instance_type=job.usage_params.get("instance_type"),
@@ -49,6 +50,7 @@ async def _charge_generic(
     )
     total_amount = calculate_cost(
         price=price,
+        discount=discount,
         usage_value=usage_value,
         include_fixed_cost=include_fixed_cost,
     )

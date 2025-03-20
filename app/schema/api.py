@@ -154,6 +154,7 @@ class VlabAccountCreationIn(BaseModel):
 
     id: UUID
     name: str
+    balance: Decimal | None = D0
 
 
 class ProjAccountCreationIn(BaseModel):
@@ -176,6 +177,7 @@ class VlabAccountCreationOut(BaseModel):
 
     id: UUID
     name: str
+    balance: Decimal
 
 
 class ProjAccountCreationOut(BaseModel):
@@ -239,6 +241,29 @@ class AddPriceIn(BaseModel):
 
 class AddPriceOut(AddPriceIn):
     """AddPriceOut."""
+
+    id: int
+
+
+class AddDiscountIn(BaseModel):
+    """AddDiscountIn."""
+
+    vlab_id: UUID
+    discount: Decimal
+    valid_from: AwareDatetime
+    valid_to: AwareDatetime | None = None
+
+    @model_validator(mode="after")
+    def check_validity_interval(self) -> Self:
+        """Check that valid_to is greater than valid_from, if provided."""
+        if self.valid_to is not None and self.valid_from >= self.valid_to:
+            err = "valid_to must be greater than valid_from"
+            raise ValueError(err)
+        return self
+
+
+class Discount(AddDiscountIn):
+    """AddDiscountOut."""
 
     id: int
 
