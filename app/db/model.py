@@ -110,6 +110,7 @@ class Journal(Base):
     transaction_type: Mapped[TransactionType]
     job_id: Mapped[UUID | None] = mapped_column(ForeignKey("job.id"), index=True)
     price_id: Mapped[BIGINT | None] = mapped_column(ForeignKey("price.id"), index=True)
+    discount_id: Mapped[BIGINT | None] = mapped_column(ForeignKey("discount.id"), index=True)
     properties: Mapped[dict[str, Any] | None]
     created_at: Mapped[CREATED_AT]
 

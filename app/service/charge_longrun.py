@@ -43,6 +43,7 @@ async def _charge_generic(
         usage_datetime=job.reserved_at or job.started_at,
     )
     discount = await repos.discount.get_current_vlab_discount(accounts.vlab.id)
+    discount_id = None if not discount else discount.id
     usage_value = calculate_longrun_usage_value(
         instances=job.usage_params["instances"],
         instance_type=job.usage_params.get("instance_type"),
@@ -82,6 +83,7 @@ async def _charge_generic(
             transaction_type=TransactionType.CHARGE_LONGRUN,
             job_id=job.id,
             price_id=price.id,
+            discount_id=discount_id,
             properties={"reason": f"{reason}:charge_reservation"},
         )
     if project_amount_to_be_charged > 0:
@@ -93,6 +95,7 @@ async def _charge_generic(
             transaction_type=TransactionType.CHARGE_LONGRUN,
             job_id=job.id,
             price_id=price.id,
+            discount_id=discount_id,
             properties={"reason": f"{reason}:charge_project"},
         )
     elif project_amount_to_be_charged < 0:
@@ -104,6 +107,7 @@ async def _charge_generic(
             transaction_type=TransactionType.REFUND,
             job_id=job.id,
             price_id=price.id,
+            discount_id=discount_id,
             properties={"reason": f"{reason}:refund_project"},
         )
     if release_reservation and remaining_reservation > 0:
@@ -115,6 +119,7 @@ async def _charge_generic(
             transaction_type=TransactionType.RELEASE,
             job_id=job.id,
             price_id=price.id,
+            discount_id=discount_id,
             properties={"reason": f"{reason}:release_reservation"},
         )
     await repos.job.update_job(

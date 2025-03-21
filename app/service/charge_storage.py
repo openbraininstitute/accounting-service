@@ -53,6 +53,7 @@ async def _charge_one(
         usage_datetime=charging_at,
     )
     discount = await repos.discount.get_current_vlab_discount(accounts.vlab.id)
+    discount_id = None if not discount else discount.id
     usage_value = calculate_storage_usage_value(
         size=job.usage_params["size"],
         duration=total_seconds,
@@ -75,6 +76,7 @@ async def _charge_one(
         transaction_type=TransactionType.CHARGE_STORAGE,
         job_id=job.id,
         price_id=price.id,
+        discount_id=discount_id,
         properties=properties,
     )
     await repos.job.update_job(

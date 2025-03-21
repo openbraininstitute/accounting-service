@@ -26,6 +26,7 @@ async def _charge_generic(
         usage_datetime=job.reserved_at or job.started_at,
     )
     discount = await repos.discount.get_current_vlab_discount(accounts.vlab.id)
+    discount_id = None if not discount else discount.id
     usage_value = calculate_oneshot_usage_value(
         count=job.usage_params["count"],
     )
@@ -48,6 +49,7 @@ async def _charge_generic(
             transaction_type=TransactionType.CHARGE_ONESHOT,
             job_id=job.id,
             price_id=price.id,
+            discount_id=discount_id,
             properties={"reason": f"{reason}:charge_reservation"},
         )
     if project_amount_to_be_charged > 0:
@@ -59,6 +61,7 @@ async def _charge_generic(
             transaction_type=TransactionType.CHARGE_ONESHOT,
             job_id=job.id,
             price_id=price.id,
+            discount_id=discount_id,
             properties={"reason": f"{reason}:charge_project"},
         )
     if remaining_reservation > 0:
@@ -70,6 +73,7 @@ async def _charge_generic(
             transaction_type=TransactionType.RELEASE,
             job_id=job.id,
             price_id=price.id,
+            discount_id=discount_id,
             properties={"reason": f"{reason}:release_reservation"},
         )
     await repos.job.update_job(
