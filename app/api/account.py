@@ -34,7 +34,9 @@ async def add_virtual_lab_account(
     repos: RepoGroupDep, account: VlabAccountCreationIn
 ) -> ApiResponse[VlabAccountCreationOut]:
     """Add a new virtual lab account."""
-    result = await account_service.add_virtual_lab(repos, account_id=account.id, name=account.name)
+    result = await account_service.add_virtual_lab(
+        repos, account_id=account.id, name=account.name, balance=account.balance
+    )
     return ApiResponse[VlabAccountCreationOut](
         message="Virtual lab created",
         data=VlabAccountCreationOut.model_validate(result, from_attributes=True),

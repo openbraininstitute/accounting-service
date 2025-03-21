@@ -6,7 +6,7 @@ from decimal import Decimal
 from typing import Annotated, Any, Literal, Self
 from uuid import UUID
 
-from pydantic import AwareDatetime, Field, model_validator
+from pydantic import AwareDatetime, Field, field_validator, model_validator
 from starlette.datastructures import URL
 
 from app.constants import D0, ServiceSubtype, ServiceType
@@ -154,6 +154,7 @@ class VlabAccountCreationIn(BaseModel):
 
     id: UUID
     name: str
+    balance: Decimal = D0
 
 
 class ProjAccountCreationIn(BaseModel):
@@ -176,6 +177,7 @@ class VlabAccountCreationOut(BaseModel):
 
     id: UUID
     name: str
+    balance: Decimal
 
 
 class ProjAccountCreationOut(BaseModel):
@@ -239,6 +241,38 @@ class AddPriceIn(BaseModel):
 
 class AddPriceOut(AddPriceIn):
     """AddPriceOut."""
+
+    id: int
+
+
+class AddDiscountIn(BaseModel):
+    """AddDiscountIn."""
+
+    vlab_id: UUID
+    discount: Decimal
+    valid_from: AwareDatetime
+    valid_to: AwareDatetime | None = None
+
+    @field_validator("discount")
+    @classmethod
+    def validate_discount(cls, v: Decimal) -> Decimal:
+        """Validate discount."""
+        if v < Decimal(0) or v > Decimal(1):
+            msg = "Discount must be between 0 and 1"
+            raise ValueError(msg)
+        return v
+
+    @model_validator(mode="after")
+    def check_validity_interval(self) -> Self:
+        """Check that valid_to is greater than valid_from, if provided."""
+        if self.valid_to is not None and self.valid_from >= self.valid_to:
+            err = "valid_to must be greater than valid_from"
+            raise ValueError(err)
+        return self
+
+
+class Discount(AddDiscountIn):
+    """AddDiscountOut."""
 
     id: int
 

@@ -56,7 +56,7 @@ class EventError(Exception):
 
 
 @contextmanager
-def ensure_result(error_message: str) -> Iterator[None]:
+def ensure_result(error_message: str, http_status_code: HTTPStatus | None = None) -> Iterator[None]:
     """Context manager that raises ApiError when no results are found after executing a query."""
     try:
         yield
@@ -64,5 +64,7 @@ def ensure_result(error_message: str) -> Iterator[None]:
         raise ApiError(
             message=error_message,
             error_code=ApiErrorCode.ENTITY_NOT_FOUND,
-            http_status_code=HTTPStatus.NOT_FOUND,
+            http_status_code=http_status_code
+            if http_status_code is not None
+            else HTTPStatus.NOT_FOUND,
         ) from err

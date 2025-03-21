@@ -19,6 +19,8 @@ UUIDS = UUIDS(
     SYS=UUID("00000000-0000-0000-0000-000000000001"),
     VLAB=[
         UUID("1b3bd3f4-3441-41b0-8fae-83a30c133dc2"),
+        UUID("1b3bd3f4-3441-41b0-8fae-83a30c133dc3"),
+        UUID("1b3bd3f4-3441-41b0-8fae-83a30c133dc4"),
     ],
     PROJ=[
         UUID("2cb0ea5a-0e6f-4080-a43c-25a4f0dd0ea2"),
@@ -45,6 +47,8 @@ UUIDS = UUIDS(
 
 SYS_ID = str(UUIDS.SYS)
 VLAB_ID = str(UUIDS.VLAB[0])
+VLAB_ID_2 = str(UUIDS.VLAB[1])
+VLAB_ID_3 = str(UUIDS.VLAB[2])
 PROJ_ID = str(UUIDS.PROJ[0])
 USER_ID = str(UUIDS.USER[0])
 USER_ID_2 = str(UUIDS.USER[1])
