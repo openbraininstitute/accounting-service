@@ -1,13 +1,13 @@
 """Discount repository module."""
 
 from collections.abc import Sequence
-from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
 
 import sqlalchemy as sa
 from sqlalchemy import null, or_
 
+from app import utils
 from app.db.model import Discount
 from app.repository.base import BaseRepository
 
@@ -27,7 +27,7 @@ class DiscountRepository(BaseRepository):
         Returns:
             The most recent active Discount object or None if no active discount exists
         """
-        now = datetime.now(tz=UTC)
+        now = utils.utcnow()
         query = (
             sa.select(Discount)
             .where(
