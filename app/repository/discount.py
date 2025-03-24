@@ -74,18 +74,3 @@ class DiscountRepository(BaseRepository):
         return (
             await self.db.execute(sa.insert(Discount).values(data).returning(Discount))
         ).scalar_one()
-
-    async def update_discount(self, discount_id: int, data: dict[str, Any]) -> Discount:
-        """Update an existing discount record by its ID.
-
-        Args:
-            discount_id: The UUID of the discount to update
-            data: Dictionary containing the fields to update (percentage, valid_from, etc.)
-
-        Returns:
-            Updated Discount object or None if discount not found
-        """
-        query = (
-            sa.update(Discount).where(Discount.id == discount_id).values(data).returning(Discount)
-        )
-        return (await self.db.execute(query)).scalar_one()

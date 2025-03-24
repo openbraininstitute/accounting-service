@@ -26,21 +26,6 @@ async def create_discount(
     )
 
 
-@router.put("", status_code=status.HTTP_200_OK)
-async def update_discount(
-    repos: RepoGroupDep,
-    discount_update_request: Discount,
-) -> ApiResponse[Discount]:
-    """Update a discount."""
-    result = await discount.update_discount(
-        repos, discount_update_request.id, discount_update_request.model_dump()
-    )
-    return ApiResponse[Discount](
-        message="Discount updated",
-        data=Discount.model_validate(result, from_attributes=True),
-    )
-
-
 @router.get("/virtual-lab/{vlab_id}", status_code=status.HTTP_200_OK)
 async def get_all_vlab_discounts(
     repos: RepoGroupDep,
