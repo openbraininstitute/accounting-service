@@ -57,6 +57,44 @@ async def test_post_discount_lt_zero(api_client):
 
 
 @pytest.mark.usefixtures("_db_account")
+async def test_post_discount_zero(api_client):
+    data = {
+        "vlab_id": VLAB_ID,
+        "discount": "0",
+        "valid_from": "2024-01-01T00:00:00Z",
+        "valid_to": None,
+    }
+    response = await api_client.post("/discount", json=data)
+
+    assert response.status_code == 201
+
+    res_data = response.json()["data"]
+
+    assert res_data["vlab_id"] == VLAB_ID
+    assert res_data["discount"] == "0"
+    assert res_data["valid_from"] == "2024-01-01T00:00:00Z"
+
+
+@pytest.mark.usefixtures("_db_account")
+async def test_post_discount_one(api_client):
+    data = {
+        "vlab_id": VLAB_ID,
+        "discount": "1",
+        "valid_from": "2024-01-01T00:00:00Z",
+        "valid_to": None,
+    }
+    response = await api_client.post("/discount", json=data)
+
+    assert response.status_code == 201
+
+    res_data = response.json()["data"]
+
+    assert res_data["vlab_id"] == VLAB_ID
+    assert res_data["discount"] == "1"
+    assert res_data["valid_from"] == "2024-01-01T00:00:00Z"
+
+
+@pytest.mark.usefixtures("_db_account")
 async def test_post_discount_gt_one(api_client):
     data = {
         "vlab_id": VLAB_ID,

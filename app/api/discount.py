@@ -18,7 +18,11 @@ async def create_discount(
     repos: RepoGroupDep,
     discount_request: AddDiscountIn,
 ) -> ApiResponse[Discount]:
-    """Create a new discount."""
+    """Create a new discount.
+
+    Discount=0 can be used to override existing discount.
+    Discount=1 renders all the services free.
+    """
     result = await discount.create_discount(repos, discount_request)
     return ApiResponse[Discount](
         message="Discount created",
