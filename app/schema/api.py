@@ -154,7 +154,7 @@ class VlabAccountCreationIn(BaseModel):
 
     id: UUID
     name: str
-    balance: Annotated[Decimal, Field(default=D0, ge=D0)]
+    balance: Annotated[Decimal, Field(ge=D0)] = D0
 
 
 class ProjAccountCreationIn(BaseModel):
