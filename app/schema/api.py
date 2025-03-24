@@ -6,10 +6,10 @@ from decimal import Decimal
 from typing import Annotated, Any, Literal, Self
 from uuid import UUID
 
-from pydantic import AwareDatetime, Field, field_validator, model_validator
+from pydantic import AwareDatetime, Field, model_validator
 from starlette.datastructures import URL
 
-from app.constants import D0, ServiceSubtype, ServiceType
+from app.constants import D0, D1, ServiceSubtype, ServiceType
 from app.errors import ApiErrorCode
 from app.schema.common import BaseModel, FormattedDecimal
 
@@ -249,18 +249,9 @@ class AddDiscountIn(BaseModel):
     """AddDiscountIn."""
 
     vlab_id: UUID
-    discount: Decimal
+    discount: Annotated[Decimal, Field(ge=D0, le=D1)]
     valid_from: AwareDatetime
     valid_to: AwareDatetime | None = None
-
-    @field_validator("discount")
-    @classmethod
-    def validate_discount(cls, v: Decimal) -> Decimal:
-        """Validate discount."""
-        if v < Decimal(0) or v > Decimal(1):
-            msg = "Discount must be between 0 and 1"
-            raise ValueError(msg)
-        return v
 
     @model_validator(mode="after")
     def check_validity_interval(self) -> Self:
