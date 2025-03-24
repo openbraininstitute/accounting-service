@@ -21,7 +21,7 @@ def calculate_cost(
         cost += price.fixed_cost
 
     if discount:
-        # Applies to both the variable and the fixed costs.
+        # Discount applies to the final cost - not to the separate cost components individually.
         cost *= Decimal(1) - discount.discount
 
     return cost
