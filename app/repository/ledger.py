@@ -25,6 +25,7 @@ class LedgerRepository(BaseRepository):
         transaction_type: TransactionType,
         job_id: UUID | None = None,
         price_id: int | None = None,
+        discount_id: int | None = None,
         properties: dict | None = None,
     ) -> None:
         """Insert a transaction into journal and ledger, and update the balance accordingly."""
@@ -37,6 +38,7 @@ class LedgerRepository(BaseRepository):
                 transaction_type=transaction_type,
                 job_id=job_id,
                 price_id=price_id,
+                discount_id=discount_id,
                 properties=properties,
             )
             .returning(Journal.id)

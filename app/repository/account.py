@@ -158,9 +158,7 @@ class AccountRepository(BaseRepository):
     async def add_vlab_account(self, account_id: UUID, name: str) -> VlabAccount:
         """Add a new virtual lab account."""
         account = await self._add_generic_account(
-            account_type=AccountType.VLAB,
-            id=account_id,
-            name=name,
+            account_type=AccountType.VLAB, id=account_id, name=name
         )
         return VlabAccount.model_validate(account)
 

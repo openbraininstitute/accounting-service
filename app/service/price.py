@@ -2,17 +2,28 @@
 
 from decimal import Decimal
 
-from app.db.model import Price
+from app.db.model import Discount, Price
 from app.errors import ensure_result
 from app.repository.group import RepositoryGroup
 from app.schema.api import AddPriceIn
 
 
-def calculate_cost(price: Price, usage_value: int, *, include_fixed_cost: bool = True) -> Decimal:
+def calculate_cost(
+    price: Price,
+    usage_value: int,
+    *,
+    include_fixed_cost: bool = True,
+    discount: Discount | None = None,
+) -> Decimal:
     """Return the cost for a job."""
     cost = price.multiplier * usage_value
     if include_fixed_cost:
         cost += price.fixed_cost
+
+    if discount:
+        # Discount applies to the final cost - not to the separate cost components individually.
+        cost *= Decimal(1) - discount.discount
+
     return cost
 
 
