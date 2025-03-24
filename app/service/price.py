@@ -21,6 +21,7 @@ def calculate_cost(
         cost += price.fixed_cost
 
     if discount:
+        # Applies to both the variable and the fixed costs.
         cost *= Decimal(1) - discount.discount
 
     return cost
