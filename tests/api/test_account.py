@@ -20,6 +20,14 @@ async def test_post_account(api_client):
     assert response.json()["data"] == {"id": VLAB_ID, "name": "vlab-01", "balance": "0"}
     assert response.status_code == 201
 
+    # Virtual lab account with negative balance
+    response = await api_client.post(
+        "/account/virtual-lab",
+        json={"id": VLAB_ID_2, "name": "vlab-02", "balance": "-1000.0"},
+    )
+
+    assert response.status_code == 422
+
     # Virtual lab account with initial balance as string
     response = await api_client.post(
         "/account/virtual-lab",
