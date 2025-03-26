@@ -85,6 +85,7 @@ async def validation_exception_handler(
 
 app = FastAPI(
     title=settings.APP_NAME,
+    version=settings.APP_VERSION or "0.0.0",
     debug=settings.APP_DEBUG,
     lifespan=lifespan,
     exception_handlers={
