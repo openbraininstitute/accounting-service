@@ -8,7 +8,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import mapped_column
 
 BIGINT = Annotated[int, mapped_column(BigInteger)]
-JSONDICT = Annotated[dict[str, Any], mapped_column(JSONB)]
+JSON_DICT = Annotated[dict[str, Any], mapped_column(JSONB)]
 
 CREATED_AT = Annotated[
     datetime,

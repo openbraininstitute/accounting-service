@@ -19,7 +19,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from app.constants import AccountType, EventStatus, ServiceSubtype, ServiceType, TransactionType
-from app.db.types import BIGINT, CREATED_AT, JSONDICT, UPDATED_AT
+from app.db.types import BIGINT, CREATED_AT, JSON_DICT, UPDATED_AT
 
 
 class Base(DeclarativeBase):
@@ -49,7 +49,7 @@ class Event(Base):
     message_id: Mapped[UUID] = mapped_column(index=True, unique=True)
     queue_name: Mapped[str]
     status: Mapped[EventStatus]
-    attributes: Mapped[JSONDICT]
+    attributes: Mapped[JSON_DICT]
     body: Mapped[str | None]
     error: Mapped[str | None]
     job_id: Mapped[UUID | None] = mapped_column(ForeignKey("job.id"), index=True)
@@ -79,8 +79,8 @@ class Job(Base):
     last_charged_at: Mapped[datetime | None]
     finished_at: Mapped[datetime | None]
     cancelled_at: Mapped[datetime | None]
-    reservation_params: Mapped[JSONDICT] = mapped_column(server_default="{}")
-    usage_params: Mapped[JSONDICT] = mapped_column(server_default="{}")
+    reservation_params: Mapped[JSON_DICT] = mapped_column(server_default="{}")
+    usage_params: Mapped[JSON_DICT] = mapped_column(server_default="{}")
 
 
 class Account(Base):
@@ -109,7 +109,7 @@ class Journal(Base):
     job_id: Mapped[UUID | None] = mapped_column(ForeignKey("job.id"), index=True)
     price_id: Mapped[BIGINT | None] = mapped_column(ForeignKey("price.id"), index=True)
     discount_id: Mapped[BIGINT | None] = mapped_column(ForeignKey("discount.id"), index=True)
-    properties: Mapped[JSONDICT | None]
+    properties: Mapped[JSON_DICT | None]
     created_at: Mapped[CREATED_AT]
 
 
