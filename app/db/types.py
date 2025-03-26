@@ -1,12 +1,14 @@
 """DB types."""
 
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Any
 
 from sqlalchemy import BigInteger, DateTime, func
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import mapped_column
 
 BIGINT = Annotated[int, mapped_column(BigInteger)]
+JSONDICT = Annotated[dict[str, Any], mapped_column(JSONB)]
 
 CREATED_AT = Annotated[
     datetime,
