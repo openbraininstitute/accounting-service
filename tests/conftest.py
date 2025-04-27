@@ -113,6 +113,7 @@ async def sqs_stubber(sqs_client) -> AsyncIterator[Stubber]:
     """Return a new stubber for each test."""
     with Stubber(sqs_client) as stubber:
         yield stubber
+        stubber.assert_no_pending_responses()
 
 
 @pytest.fixture
