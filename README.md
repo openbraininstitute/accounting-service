@@ -56,7 +56,8 @@ The format of the tag should be `YYYY.M.N`, where:
 
 ## Documentation
 
-The API documentation is available locally at <http://127.0.0.1:8100/docs> after the local deployment.
+- The API documentation is available locally at <http://127.0.0.1:8100/docs> after the local deployment.
+- The technical documentation is available at <https://openbraininstitute.github.io/platform-docs/modules/accounting/accounting/>
 
 ## High level overview
 
