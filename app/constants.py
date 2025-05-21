@@ -61,6 +61,7 @@ class ServiceSubtype(HyphenStrEnum):
     """Service Subtype."""
 
     STORAGE = auto()
+    NOTEBOOK = auto()
     SINGLE_CELL_SIM = auto()
     SINGLE_CELL_BUILD = auto()
     SYNAPTOME_SIM = auto()
