@@ -172,7 +172,7 @@ async def charge_longrun(
                     last_alive_at=datetime() as last_alive_at,
                     last_charged_at=None,
                     finished_at=None,
-                ) if ((now - last_alive_at).total_seconds() > expiration_interval):
+                ) if (now - last_alive_at).total_seconds() > expiration_interval:
                     # Cancel the expired job and charge the user for the first and last time
                     await _charge_generic(
                         repos,
@@ -190,7 +190,7 @@ async def charge_longrun(
                     last_alive_at=datetime() as last_alive_at,
                     last_charged_at=datetime() as last_charged_at,
                     finished_at=None,
-                ) if ((now - last_alive_at).total_seconds() > expiration_interval):
+                ) if (now - last_alive_at).total_seconds() > expiration_interval:
                     # Cancel the expired job and charge the user for the last time
                     await _charge_generic(
                         repos,
