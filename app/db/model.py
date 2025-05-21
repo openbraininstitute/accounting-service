@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, ClassVar
+from typing import ClassVar
 from uuid import UUID
 
 from sqlalchemy import (
@@ -16,11 +16,10 @@ from sqlalchemy import (
     text,
     true,
 )
-from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from app.constants import AccountType, EventStatus, ServiceSubtype, ServiceType, TransactionType
-from app.db.types import BIGINT, CREATED_AT, UPDATED_AT
+from app.db.types import BIGINT, CREATED_AT, JSON_DICT, UPDATED_AT
 
 
 class Base(DeclarativeBase):
@@ -28,7 +27,6 @@ class Base(DeclarativeBase):
 
     type_annotation_map: ClassVar[dict] = {
         datetime: DateTime(timezone=True),
-        dict[str, Any]: JSONB,
     }
     # See https://alembic.sqlalchemy.org/en/latest/naming.html
     metadata = MetaData(
@@ -51,7 +49,7 @@ class Event(Base):
     message_id: Mapped[UUID] = mapped_column(index=True, unique=True)
     queue_name: Mapped[str]
     status: Mapped[EventStatus]
-    attributes: Mapped[dict[str, Any]]
+    attributes: Mapped[JSON_DICT]
     body: Mapped[str | None]
     error: Mapped[str | None]
     job_id: Mapped[UUID | None] = mapped_column(ForeignKey("job.id"), index=True)
@@ -81,8 +79,8 @@ class Job(Base):
     last_charged_at: Mapped[datetime | None]
     finished_at: Mapped[datetime | None]
     cancelled_at: Mapped[datetime | None]
-    reservation_params: Mapped[dict[str, Any]] = mapped_column(server_default="{}")
-    usage_params: Mapped[dict[str, Any]] = mapped_column(server_default="{}")
+    reservation_params: Mapped[JSON_DICT] = mapped_column(server_default="{}")
+    usage_params: Mapped[JSON_DICT] = mapped_column(server_default="{}")
 
 
 class Account(Base):
@@ -111,7 +109,7 @@ class Journal(Base):
     job_id: Mapped[UUID | None] = mapped_column(ForeignKey("job.id"), index=True)
     price_id: Mapped[BIGINT | None] = mapped_column(ForeignKey("price.id"), index=True)
     discount_id: Mapped[BIGINT | None] = mapped_column(ForeignKey("discount.id"), index=True)
-    properties: Mapped[dict[str, Any] | None]
+    properties: Mapped[JSON_DICT | None]
     created_at: Mapped[CREATED_AT]
 
 
