@@ -36,9 +36,11 @@ lint:  ## Run linters
 	uv run -m ruff check
 	uv run -m mypy app
 
+build: export COMPOSE_PROFILES=run
 build:  ## Build the Docker image
-	docker compose build app
+	docker compose --progress=plain build app
 
+publish: export COMPOSE_PROFILES=run
 publish: build  ## Publish the Docker image to DockerHub
 	docker compose push app
 
@@ -50,9 +52,9 @@ kill: export COMPOSE_PROFILES=run,test
 kill:  ## Take down the application and remove the volumes
 	docker compose down --remove-orphans --volumes
 
-clean: export COMPOSE_PROFILES=run,test
-clean: ## Take down the application and remove the volumes and the images
-	docker compose down --remove-orphans --volumes --rmi all
+destroy: export COMPOSE_PROFILES=run,test
+destroy: ## Take down the application and remove the volumes
+	docker compose down --remove-orphans --volumes
 
 test: build  ## Run tests in Docker
 	docker compose run --rm test
@@ -72,6 +74,10 @@ migration:  ## Create the alembic migration
 	docker compose up --wait db
 	uv run -m alembic upgrade head
 	uv run -m alembic revision --autogenerate
+
+populate: export API_URL=http://localhost:8100
+populate:  ## Populate the local db with example data
+	uv run scripts/populate.py
 
 show-config: export COMPOSE_PROFILES=run,test
 show-config:  ## Show the docker-compose configuration in the current environment

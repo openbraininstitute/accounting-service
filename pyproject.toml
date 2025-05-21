@@ -16,7 +16,7 @@ dependencies = [
     "loguru",
     "pydantic>=2",
     "pydantic-settings>=2.2.1",
-    "sqlalchemy",
+    "sqlalchemy[asyncio]",
     "uvicorn[standard]",
 ]
 requires-python = "==3.12.*"
