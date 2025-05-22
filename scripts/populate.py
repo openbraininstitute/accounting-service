@@ -2,6 +2,7 @@
 # ruff: noqa
 
 import logging
+import os
 import time
 
 import httpx
@@ -102,6 +103,7 @@ def _create_job(client, url):
             "type": "oneshot",
             "subtype": "ml-llm",
             "proj_id": "8eb248a8-672c-4158-9365-b95286cba796",
+            "user_id": "a2772460-4763-45e1-9855-d9557526fdab",
             "count": "10",
         },
     )
@@ -135,4 +137,4 @@ def main(base_url):
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    main(base_url="http://localhost:8100")
+    main(base_url=os.getenv("API_URL", "http://localhost:8100"))

@@ -22,13 +22,15 @@ compile-deps            Create or update the lock file, without upgrading the ve
 upgrade-deps            Create or update the lock file, using the latest version of the dependencies
 check-deps              Check that the dependencies in the existing lock file are valid
 lint                    Run linters
-build                   Build the docker images
-run                     Run the application in docker
+build                   Build the Docker image
+publish                 Publish the Docker image to DockerHub
+run                     Run the application in Docker
 kill                    Take down the application and remove the volumes
-clean                   Take down the application and remove the volumes and the images
-test                    Run tests in docker
+destroy                 Take down the application and remove the volumes
+test                    Run tests in Docker
 test-local              Run tests locally
 migration               Create the alembic migration
+populate                Populate the local db with example data
 show-config             Show the docker-compose configuration in the current environment
 sh                      Run a shell in the app container
 ```
@@ -39,6 +41,11 @@ To build and start the Docker images locally, you can execute:
 make run
 ```
 
+Optionally, to populate the local db with example data, you can run:
+
+```bash
+make populate
+```
 
 ## Remote deployment
 

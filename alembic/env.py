@@ -4,13 +4,13 @@ from collections.abc import Iterable
 from logging.config import fileConfig
 
 import alembic_postgresql_enum  # noqa: F401
+from alembic.environment import MigrationContext
+from alembic.operations import MigrationScript
 from sqlalchemy import pool, text
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
-from alembic.environment import MigrationContext
-from alembic.operations import MigrationScript
 from app.config import settings
 from app.db.model import Base
 
