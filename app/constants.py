@@ -66,7 +66,7 @@ class ServiceSubtype(HyphenStrEnum):
     NOTEBOOK = auto()
     SINGLE_CELL_BUILD = auto()
     SINGLE_CELL_SIM = auto()
+    SMALL_CIRCUIT_SIM = auto()
     STORAGE = auto()
     SYNAPTOME_BUILD = auto()
     SYNAPTOME_SIM = auto()
-    SMALL_CIRCUIT_SIM = auto()
