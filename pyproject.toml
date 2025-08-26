@@ -24,6 +24,9 @@ readme = "README.md"
 license = {text = "Apache-2.0"}
 
 [dependency-groups]
+audit = [
+    "pip-audit>=2.9.0",
+]
 dev = [
     "coverage[toml]",
     "httpx",

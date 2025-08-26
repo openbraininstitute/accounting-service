@@ -14,3 +14,4 @@ tmp
 htmlcov
 .pdm-python
 *~
+pip-audit-output.json
