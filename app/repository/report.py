@@ -74,7 +74,7 @@ class ReportRepository(BaseRepository):
                 Job.usage_params["count"].label("count"),
                 Job.reservation_params["count"].label("reserved_count"),
                 case(
-                    (Job.finished_at == Job.started_at, None),
+                    (Job.finished_at == Job.started_at, 0),
                     else_=func.extract("epoch", (Job.finished_at - Job.started_at)).cast(Integer),
                 ).label("duration"),
                 Job.reservation_params["duration"].label("reserved_duration"),

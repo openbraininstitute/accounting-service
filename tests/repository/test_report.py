@@ -26,7 +26,7 @@ EXPECTED = [
         "reserved_amount": Decimal("0.010"),
         "count": 1500,
         "reserved_count": 1000,
-        "duration": None,
+        "duration": 0,
         "reserved_duration": None,
         "size": None,
     },
