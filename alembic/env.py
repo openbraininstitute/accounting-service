@@ -91,7 +91,7 @@ def do_run_migrations(connection: Connection) -> None:
     context.configure(
         connection=connection,
         target_metadata=target_metadata,
-        transaction_per_migration=True,
+        transaction_per_migration=False,
         process_revision_directives=process_revision_directives,
     )
 

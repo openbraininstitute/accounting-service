@@ -23,8 +23,8 @@ requires-python = "==3.12.*"
 readme = "README.md"
 license = {text = "Apache-2.0"}
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "coverage[toml]",
     "httpx",
     "mypy",
@@ -35,6 +35,9 @@ dev-dependencies = [
     "ruff",
     "types-PyYAML",
 ]
+
+[tool.uv]
+required-version = ">=0.8.0"
 
 [tool.ruff]
 line-length = 100
