@@ -29,6 +29,8 @@ jobs:
         run: make lint
       - name: Run tests
         run: make test
+      - name: Run pip-audit
+        run: make pip-audit
       - name: Cleanup
         if: ${{ always() }}
         run: |
