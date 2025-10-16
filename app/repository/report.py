@@ -25,7 +25,7 @@ class ReportRepository(BaseRepository):
         started_before: datetime | None = None,
     ) -> tuple[Sequence[Row], int]:
         """Return a page of job reports for a given project, and the total number of jobs."""
-        order_by_columns = (Job.started_at, Job.id)
+        order_by_columns = (Job.started_at.desc(), Job.id)
         base_query = (
             sa.select(Job.id)
             .select_from(Job)
