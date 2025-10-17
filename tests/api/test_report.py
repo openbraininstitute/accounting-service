@@ -36,18 +36,14 @@ async def test_get_report(api_client, url, extra_expected_data):
         "items": [
             {
                 **extra_expected_data,
-                "job_id": str(UUIDS.JOB[0]),
-                "user_id": str(UUIDS.USER[0]),
-                "name": "test job 0",
-                "group_id": str(UUIDS.GROUP[0]),
-                "type": "oneshot",
-                "subtype": "ml-llm",
-                "amount": "0.01500",
-                "reserved_amount": "0.01000",
-                "count": 1500,
-                "reserved_count": 1000,
-                "reserved_at": ANY,
+                "job_id": str(UUIDS.JOB[2]),
+                "type": "storage",
+                "subtype": "storage",
+                "amount": "0",  # no ledger records
                 "started_at": ANY,
+                "finished_at": ANY,
+                "duration": 120,
+                "size": 1000,
             },
             {
                 **extra_expected_data,
@@ -88,14 +84,18 @@ async def test_get_report(api_client, url, extra_expected_data):
         "items": [
             {
                 **extra_expected_data,
-                "job_id": str(UUIDS.JOB[2]),
-                "type": "storage",
-                "subtype": "storage",
-                "amount": "0",  # no ledger records
+                "job_id": str(UUIDS.JOB[0]),
+                "user_id": str(UUIDS.USER[0]),
+                "name": "test job 0",
+                "group_id": str(UUIDS.GROUP[0]),
+                "type": "oneshot",
+                "subtype": "ml-llm",
+                "amount": "0.01500",
+                "reserved_amount": "0.01000",
+                "count": 1500,
+                "reserved_count": 1000,
+                "reserved_at": ANY,
                 "started_at": ANY,
-                "finished_at": ANY,
-                "duration": 120,
-                "size": 1000,
             },
         ],
         "meta": {
