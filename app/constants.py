@@ -62,6 +62,11 @@ class ServiceSubtype(HyphenStrEnum):
 
     # Please report the repository and what the constant is used for
 
+    # these need to be in sync with:
+
+    # https://github.com/openbraininstitute/accounting-sdk/blob/main/src/obp_accounting_sdk/constants.py
+    # https://github.com/openbraininstitute/virtual-lab-api/blob/develop/virtual_labs/external/accounting/models.py
+
     # `neuroagent`; Used for `qa` chat agent
     ML_LLM = auto()
     ML_RAG = auto()
@@ -80,3 +85,13 @@ class ServiceSubtype(HyphenStrEnum):
     SYNAPTOME_BUILD = auto()
     # `Bluenaas`: Single neuron synaptome simulation
     SYNAPTOME_SIM = auto()
+    # these *_SIM are a mirror of the `CircuitScale`s in entitycore:
+    # { https://github.com/openbraininstitute/entitycore/blob/6a20aa95748136d7a54a98326d8140751fcf1a09/app/db/types.py#L620
+    SINGLE_SIM = auto()
+    PAIR_SIM = auto()
+    SMALL_SIM = auto()
+    MICROCIRCUIT_SIM = auto()
+    REGION_SIM = auto()
+    SYSTEM_SIM = auto()
+    WHOLE_BRAIN_SIM = auto()
+    # } end of `CircuitScale`
