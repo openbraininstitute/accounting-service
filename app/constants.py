@@ -66,7 +66,7 @@ class ServiceSubtype(HyphenStrEnum):
 
     # * https://github.com/openbraininstitute/accounting-sdk/blob/main/src/obp_accounting_sdk/constants.py
     # * https://github.com/openbraininstitute/core-web-app/blob/develop/src/types/accounting/index.ts
-    #    (grep `ServiceSubtype` for other usages; for instanse, in:
+    #    (grep `ServiceSubtype` for other usages; for instance, in:
     #    https://github.com/openbraininstitute/core-web-app/blob/develop/src/ui/segments/project/credits/job-report-list.tsx
     # * virtual-lab-api takes its value from `accounting-sdk`; so a version bump may be required.
 

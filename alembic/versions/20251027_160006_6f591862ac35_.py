@@ -1,4 +1,4 @@
-"""empty message
+"""Add CircuitScale simulations to ServiceSubtype
 
 Revision ID: 6f591862ac35
 Revises: ae294ddca4a7
