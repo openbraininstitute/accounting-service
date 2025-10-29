@@ -89,7 +89,6 @@ async def charge_oneshot(repos: RepositoryGroup) -> ChargeOneshotResult:
 
     Args:
         repos: repository group instance.
-        jobs: optional sequence of jobs.
     """
 
     def _on_error() -> None:
