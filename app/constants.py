@@ -70,6 +70,8 @@ class ServiceSubtype(HyphenStrEnum):
     #    https://github.com/openbraininstitute/core-web-app/blob/develop/src/ui/segments/project/credits/job-report-list.tsx
     # * virtual-lab-api takes its value from `accounting-sdk`; so a version bump may be required.
 
+    # `Bluenaas`: Build an ion channel model
+    ION_CHANNEL_BUILD = auto()
     # `neuroagent`; Used for `qa` chat agent
     ML_LLM = auto()
     ML_RAG = auto()
