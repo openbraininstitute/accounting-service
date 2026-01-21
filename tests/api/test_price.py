@@ -96,7 +96,7 @@ async def test_estimate_oneshot_cost_with_vlab_id(api_client):
     response = await api_client.post("/price/estimate/oneshot", json=request_payload)
 
     assert response.status_code == 200
-    assert response.json()["data"] == {"cost": "10.00000"}
+    assert response.json()["data"] == {"cost": "10.00"}
     assert response.json()["message"] == "Cost estimation for oneshot job"
 
 
@@ -112,11 +112,11 @@ async def test_estimate_oneshot_cost_with_proj_id(api_client):
     response = await api_client.post("/price/estimate/oneshot", json=request_payload)
 
     assert response.status_code == 200
-    assert response.json()["data"] == {"cost": "5.00000"}
+    assert response.json()["data"] == {"cost": "5.00"}
     assert response.json()["message"] == "Cost estimation for oneshot job"
 
 
-@pytest.mark.usefixtures("_db_account", "_db_price")
+@pytest.mark.usefixtures("_db_account")
 async def test_estimate_oneshot_cost_with_fixed_cost(api_client):
     """Test cost estimation with fixed cost included."""
     # First create a price with fixed cost
@@ -141,7 +141,7 @@ async def test_estimate_oneshot_cost_with_fixed_cost(api_client):
 
     assert response.status_code == 200
     # cost = fixed_cost (2.5) + multiplier (0.00001) * count (100000) = 2.5 + 1.0 = 3.5
-    assert response.json()["data"] == {"cost": "3.50000"}
+    assert response.json()["data"] == {"cost": "3.50"}
 
 
 @pytest.mark.usefixtures("_db_account", "_db_price")
@@ -166,10 +166,10 @@ async def test_estimate_oneshot_cost_with_discount(api_client):
 
     assert response.status_code == 200
     # cost = 10.0 * (1 - 0.2) = 8.0
-    assert response.json()["data"] == {"cost": "8.00000"}
+    assert response.json()["data"] == {"cost": "8.00"}
 
 
-@pytest.mark.usefixtures("_db_account", "_db_price")
+@pytest.mark.usefixtures("_db_account")
 async def test_estimate_oneshot_cost_with_discount_and_fixed_cost(api_client):
     """Test cost estimation with both fixed cost and discount."""
     # Create a price with fixed cost
@@ -204,7 +204,7 @@ async def test_estimate_oneshot_cost_with_discount_and_fixed_cost(api_client):
     assert response.status_code == 200
     # cost = (fixed_cost (2.0) + multiplier (0.00001) * count (100000)) * (1 - 0.1)
     #      = (2.0 + 1.0) * 0.9 = 3.0 * 0.9 = 2.7
-    assert response.json()["data"] == {"cost": "2.70000"}
+    assert response.json()["data"] == {"cost": "2.70"}
 
 
 @pytest.mark.usefixtures("_db_account", "_db_price")
@@ -263,4 +263,4 @@ async def test_estimate_oneshot_cost_zero_count(api_client):
 
     assert response.status_code == 200
     # cost = 0 * 0.00001 = 0 (no fixed cost in default price)
-    assert response.json()["data"] == {"cost": "0.00000"}
+    assert response.json()["data"] == {"cost": "0.00"}
