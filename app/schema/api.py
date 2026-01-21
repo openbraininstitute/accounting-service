@@ -245,6 +245,36 @@ class AddPriceOut(AddPriceIn):
     id: int
 
 
+class BaseEstimateCostIn(BaseModel):
+    """BaseEstimateCostIn."""
+
+    vlab_id: UUID | None = None
+    proj_id: UUID | None = None
+    type: ServiceType
+    subtype: ServiceSubtype
+
+    @model_validator(mode="after")
+    def check_vlab_or_proj(self) -> Self:
+        """Check that either vlab_id or proj_id is provided."""
+        if self.vlab_id is None and self.proj_id is None:
+            err = "Either vlab_id or proj_id must be provided"
+            raise ValueError(err)
+        return self
+
+
+class EstimateOneshotCostIn(BaseEstimateCostIn):
+    """EstimateOneshotCostIn."""
+
+    type: Literal[ServiceType.ONESHOT]
+    count: Annotated[int, Field(ge=0)]
+
+
+class EstimateCostOut(BaseModel):
+    """EstimateCostOut."""
+
+    cost: FormattedDecimal
+
+
 class AddDiscountIn(BaseModel):
     """AddDiscountIn."""
 
