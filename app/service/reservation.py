@@ -14,7 +14,10 @@ from app.schema.api import (
     MakeReservationOut,
 )
 from app.service.price import calculate_cost
-from app.service.usage import calculate_longrun_usage_value, calculate_oneshot_usage_value
+from app.service.usage import (
+    calculate_longrun_usage_value,
+    calculate_oneshot_usage_value,
+)
 from app.utils import create_uuid, utcnow
 
 
@@ -38,7 +41,14 @@ async def _make_reservation(
         service_subtype=reservation_request.subtype,
         usage_datetime=reserving_at,
     )
-    requested_amount = calculate_cost(price=price, usage_value=usage_value)
+    discount = await repos.discount.get_current_vlab_discount(accounts.vlab.id)
+    discount_id = None if not discount else discount.id
+    requested_amount = calculate_cost(
+        price=price,
+        discount=discount,
+        usage_value=usage_value,
+        include_fixed_cost=True,
+    )
     if requested_amount > available_amount:
         L.info(
             "Reservation not allowed for project {}: requested={}, available={}",
@@ -73,6 +83,7 @@ async def _make_reservation(
         transaction_type=TransactionType.RESERVE,
         job_id=job_id,
         price_id=price.id,
+        discount_id=discount_id,
         properties=None,
     )
     L.info(
