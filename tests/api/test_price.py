@@ -93,7 +93,7 @@ async def test_estimate_oneshot_cost_with_vlab_id(api_client):
         "subtype": ServiceSubtype.ML_LLM,
         "count": 1000000,
     }
-    response = await api_client.post("/price/estimate/oneshot", json=request_payload)
+    response = await api_client.post("/estimate/oneshot", json=request_payload)
 
     assert response.status_code == 200
     assert response.json()["data"] == {"cost": "10.00"}
@@ -109,7 +109,7 @@ async def test_estimate_oneshot_cost_with_proj_id(api_client):
         "subtype": ServiceSubtype.ML_LLM,
         "count": 500000,
     }
-    response = await api_client.post("/price/estimate/oneshot", json=request_payload)
+    response = await api_client.post("/estimate/oneshot", json=request_payload)
 
     assert response.status_code == 200
     assert response.json()["data"] == {"cost": "5.00"}
@@ -137,7 +137,7 @@ async def test_estimate_oneshot_cost_with_fixed_cost(api_client):
         "subtype": ServiceSubtype.ML_RAG,
         "count": 100000,
     }
-    response = await api_client.post("/price/estimate/oneshot", json=request_payload)
+    response = await api_client.post("/estimate/oneshot", json=request_payload)
 
     assert response.status_code == 200
     # cost = fixed_cost (2.5) + multiplier (0.00001) * count (100000) = 2.5 + 1.0 = 3.5
@@ -162,7 +162,7 @@ async def test_estimate_oneshot_cost_with_discount(api_client):
         "subtype": ServiceSubtype.ML_LLM,
         "count": 1000000,
     }
-    response = await api_client.post("/price/estimate/oneshot", json=request_payload)
+    response = await api_client.post("/estimate/oneshot", json=request_payload)
 
     assert response.status_code == 200
     # cost = 10.0 * (1 - 0.2) = 8.0
@@ -199,7 +199,7 @@ async def test_estimate_oneshot_cost_with_discount_and_fixed_cost(api_client):
         "subtype": ServiceSubtype.ML_RAG,
         "count": 100000,
     }
-    response = await api_client.post("/price/estimate/oneshot", json=request_payload)
+    response = await api_client.post("/estimate/oneshot", json=request_payload)
 
     assert response.status_code == 200
     # cost = (fixed_cost (2.0) + multiplier (0.00001) * count (100000)) * (1 - 0.1)
@@ -216,7 +216,7 @@ async def test_estimate_oneshot_cost_missing_price(api_client):
         "subtype": ServiceSubtype.ML_RETRIEVAL,
         "count": 1000,
     }
-    response = await api_client.post("/price/estimate/oneshot", json=request_payload)
+    response = await api_client.post("/estimate/oneshot", json=request_payload)
 
     assert response.status_code == 404
     assert "Missing price" in response.json()["message"]
@@ -231,7 +231,7 @@ async def test_estimate_oneshot_cost_invalid_proj_id(api_client):
         "subtype": ServiceSubtype.ML_LLM,
         "count": 1000,
     }
-    response = await api_client.post("/price/estimate/oneshot", json=request_payload)
+    response = await api_client.post("/estimate/oneshot", json=request_payload)
 
     assert response.status_code == 404
     assert "Project not found" in response.json()["message"]
@@ -245,7 +245,7 @@ async def test_estimate_oneshot_cost_missing_vlab_and_proj(api_client):
         "subtype": ServiceSubtype.ML_LLM,
         "count": 1000,
     }
-    response = await api_client.post("/price/estimate/oneshot", json=request_payload)
+    response = await api_client.post("/estimate/oneshot", json=request_payload)
 
     assert response.status_code == 422
 
@@ -259,7 +259,7 @@ async def test_estimate_oneshot_cost_zero_count(api_client):
         "subtype": ServiceSubtype.ML_LLM,
         "count": 0,
     }
-    response = await api_client.post("/price/estimate/oneshot", json=request_payload)
+    response = await api_client.post("/estimate/oneshot", json=request_payload)
 
     assert response.status_code == 200
     # cost = 0 * 0.00001 = 0 (no fixed cost in default price)
