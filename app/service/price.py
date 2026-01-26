@@ -12,8 +12,8 @@ def calculate_cost(
     price: Price,
     usage_value: int,
     *,
-    include_fixed_cost: bool = True,
-    discount: Discount | None = None,
+    include_fixed_cost: bool,
+    discount: Discount | None,
 ) -> Decimal:
     """Return the cost for a job."""
     cost = price.multiplier * usage_value

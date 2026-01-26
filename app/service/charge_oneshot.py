@@ -30,7 +30,12 @@ async def _charge_generic(
     usage_value = calculate_oneshot_usage_value(
         count=job.usage_params["count"],
     )
-    total_amount = calculate_cost(price=price, discount=discount, usage_value=usage_value)
+    total_amount = calculate_cost(
+        price=price,
+        discount=discount,
+        usage_value=usage_value,
+        include_fixed_cost=True,
+    )
     if total_amount < 0:
         err = f"Total amount for job {job.id} is negative: {total_amount}"
         raise RuntimeError(err)
