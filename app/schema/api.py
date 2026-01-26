@@ -245,6 +245,27 @@ class AddPriceOut(AddPriceIn):
     id: int
 
 
+class BaseEstimateCostIn(BaseModel):
+    """BaseEstimateCostIn."""
+
+    proj_id: UUID
+    type: ServiceType
+    subtype: ServiceSubtype
+
+
+class EstimateOneshotCostIn(BaseEstimateCostIn):
+    """EstimateOneshotCostIn."""
+
+    type: Literal[ServiceType.ONESHOT]
+    count: Annotated[int, Field(ge=0)]
+
+
+class EstimateCostOut(BaseModel):
+    """EstimateCostOut."""
+
+    cost: FormattedDecimal
+
+
 class AddDiscountIn(BaseModel):
     """AddDiscountIn."""
 
