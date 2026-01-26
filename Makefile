@@ -86,6 +86,5 @@ show-config:  ## Show the docker-compose configuration in the current environmen
 sh: build  ## Run a shell in the app container
 	docker compose run --rm app bash
 
-pip-audit:
-	echo "Ignoring pip vulnerability GHSA-4xh5-x5gv-qwph"
-	uv run --group audit pip-audit --progress-spinner off --ignore-vuln GHSA-4xh5-x5gv-qwph
+pip-audit:  ## Run package auditing
+	uv run --with pip-audit pip-audit --local --progress-spinner off --desc off
