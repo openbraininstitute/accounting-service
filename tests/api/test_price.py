@@ -85,22 +85,6 @@ async def test_post_price_with_invalid_costs(api_client):
 
 
 @pytest.mark.usefixtures("_db_account", "_db_price")
-async def test_estimate_oneshot_cost_with_vlab_id(api_client):
-    """Test cost estimation for oneshot job using vlab_id."""
-    request_payload = {
-        "vlab_id": VLAB_ID,
-        "type": ServiceType.ONESHOT,
-        "subtype": ServiceSubtype.ML_LLM,
-        "count": 1000000,
-    }
-    response = await api_client.post("/estimate/oneshot", json=request_payload)
-
-    assert response.status_code == 200
-    assert response.json()["data"] == {"cost": "10.00"}
-    assert response.json()["message"] == "Cost estimation for oneshot job"
-
-
-@pytest.mark.usefixtures("_db_account", "_db_price")
 async def test_estimate_oneshot_cost_with_proj_id(api_client):
     """Test cost estimation for oneshot job using proj_id."""
     request_payload = {
@@ -132,7 +116,7 @@ async def test_estimate_oneshot_cost_with_fixed_cost(api_client):
     await api_client.post("/price", json=price_data)
 
     request_payload = {
-        "vlab_id": VLAB_ID,
+        "proj_id": PROJ_ID,
         "type": ServiceType.ONESHOT,
         "subtype": ServiceSubtype.ML_RAG,
         "count": 100000,
@@ -157,7 +141,7 @@ async def test_estimate_oneshot_cost_with_discount(api_client):
     await api_client.post("/discount", json=discount_data)
 
     request_payload = {
-        "vlab_id": VLAB_ID,
+        "proj_id": PROJ_ID,
         "type": ServiceType.ONESHOT,
         "subtype": ServiceSubtype.ML_LLM,
         "count": 1000000,
@@ -194,7 +178,7 @@ async def test_estimate_oneshot_cost_with_discount_and_fixed_cost(api_client):
     await api_client.post("/discount", json=discount_data)
 
     request_payload = {
-        "vlab_id": VLAB_ID,
+        "proj_id": PROJ_ID,
         "type": ServiceType.ONESHOT,
         "subtype": ServiceSubtype.ML_RAG,
         "count": 100000,
@@ -211,7 +195,7 @@ async def test_estimate_oneshot_cost_with_discount_and_fixed_cost(api_client):
 async def test_estimate_oneshot_cost_missing_price(api_client):
     """Test cost estimation when price doesn't exist."""
     request_payload = {
-        "vlab_id": VLAB_ID,
+        "proj_id": PROJ_ID,
         "type": ServiceType.ONESHOT,
         "subtype": ServiceSubtype.ML_RETRIEVAL,
         "count": 1000,
@@ -238,8 +222,8 @@ async def test_estimate_oneshot_cost_invalid_proj_id(api_client):
 
 
 @pytest.mark.usefixtures("_db_account", "_db_price")
-async def test_estimate_oneshot_cost_missing_vlab_and_proj(api_client):
-    """Test cost estimation without vlab_id or proj_id."""
+async def test_estimate_oneshot_cost_missing_proj_id(api_client):
+    """Test cost estimation without proj_id."""
     request_payload = {
         "type": ServiceType.ONESHOT,
         "subtype": ServiceSubtype.ML_LLM,
@@ -254,7 +238,7 @@ async def test_estimate_oneshot_cost_missing_vlab_and_proj(api_client):
 async def test_estimate_oneshot_cost_zero_count(api_client):
     """Test cost estimation with zero count."""
     request_payload = {
-        "vlab_id": VLAB_ID,
+        "proj_id": PROJ_ID,
         "type": ServiceType.ONESHOT,
         "subtype": ServiceSubtype.ML_LLM,
         "count": 0,

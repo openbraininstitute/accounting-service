@@ -41,12 +41,10 @@ async def estimate_oneshot_cost(
     repos: RepositoryGroup, estimate_request: EstimateOneshotCostIn
 ) -> EstimateCostOut:
     """Estimate the cost for a oneshot job."""
-    # Get vlab_id from proj_id if needed
-    vlab_id = estimate_request.vlab_id
-    if vlab_id is None:
-        with ensure_result(error_message="Project not found"):
-            accounts = await repos.account.get_accounts_by_proj_id(proj_id=estimate_request.proj_id)
-        vlab_id = accounts.vlab.id
+    # Get vlab_id from proj_id
+    with ensure_result(error_message="Project not found"):
+        accounts = await repos.account.get_accounts_by_proj_id(proj_id=estimate_request.proj_id)
+    vlab_id = accounts.vlab.id
 
     # Get price
     usage_datetime = utcnow()
