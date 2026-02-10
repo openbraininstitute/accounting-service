@@ -14,7 +14,8 @@ from tests.constants import UUIDS
 
 
 class TestCalculateCost:
-    def test_without_fixed_cost_or_discount(self):
+    @staticmethod
+    def test_without_fixed_cost_or_discount():
         price = Price(
             id=1,
             service_type=ServiceType.ONESHOT,
@@ -30,7 +31,8 @@ class TestCalculateCost:
         )
         assert result == Decimal("1.0")
 
-    def test_with_fixed_cost(self):
+    @staticmethod
+    def test_with_fixed_cost():
         price = Price(
             id=1,
             service_type=ServiceType.ONESHOT,
@@ -46,7 +48,8 @@ class TestCalculateCost:
         )
         assert result == Decimal("2.5")
 
-    def test_with_discount(self):
+    @staticmethod
+    def test_with_discount():
         price = Price(
             id=1,
             service_type=ServiceType.ONESHOT,
@@ -69,7 +72,8 @@ class TestCalculateCost:
         )
         assert result == Decimal("0.8")
 
-    def test_with_fixed_cost_and_discount(self):
+    @staticmethod
+    def test_with_fixed_cost_and_discount():
         price = Price(
             id=1,
             service_type=ServiceType.ONESHOT,
