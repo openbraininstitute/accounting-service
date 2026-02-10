@@ -1,5 +1,5 @@
-from decimal import Decimal
 from datetime import datetime
+from decimal import Decimal
 
 import pytest
 
@@ -53,7 +53,7 @@ class TestCalculateCost:
             service_subtype=ServiceSubtype.ML_LLM,
             valid_from=datetime.fromisoformat("2024-01-01T00:00:00Z"),
             valid_to=None,
-            fixed_cost=Decimal("0"),
+            fixed_cost=Decimal(0),
             multiplier=Decimal("0.01"),
             vlab_id=None,
         )
@@ -101,7 +101,7 @@ async def test_add_price(db):
         service_subtype=ServiceSubtype.ML_LLM,
         valid_from=datetime.fromisoformat("2024-01-01T00:00:00Z"),
         valid_to=None,
-        fixed_cost=Decimal("0"),
+        fixed_cost=Decimal(0),
         multiplier=Decimal("0.00001"),
         vlab_id=None,
     )
@@ -118,7 +118,7 @@ async def test_add_price_with_vlab_id(db):
         service_subtype=ServiceSubtype.ML_LLM,
         valid_from=datetime.fromisoformat("2024-01-01T00:00:00Z"),
         valid_to=None,
-        fixed_cost=Decimal("0"),
+        fixed_cost=Decimal(0),
         multiplier=Decimal("0.00001"),
         vlab_id=UUIDS.VLAB[0],
     )
@@ -134,7 +134,7 @@ async def test_add_price_invalid_vlab(db):
         service_subtype=ServiceSubtype.ML_LLM,
         valid_from=datetime.fromisoformat("2024-01-01T00:00:00Z"),
         valid_to=None,
-        fixed_cost=Decimal("0"),
+        fixed_cost=Decimal(0),
         multiplier=Decimal("0.00001"),
         vlab_id=UUIDS.VLAB[2],
     )
