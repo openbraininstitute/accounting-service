@@ -13,88 +13,86 @@ from app.service import price as test_module
 from tests.constants import UUIDS
 
 
-class TestCalculateCost:
-    @staticmethod
-    def test_without_fixed_cost_or_discount():
-        price = Price(
-            id=1,
-            service_type=ServiceType.ONESHOT,
-            service_subtype=ServiceSubtype.ML_LLM,
-            valid_from=datetime.fromisoformat("2024-01-01T00:00:00Z"),
-            valid_to=None,
-            fixed_cost=Decimal("1.5"),
-            multiplier=Decimal("0.01"),
-            vlab_id=None,
-        )
-        result = test_module.calculate_cost(
-            price=price, usage_value=100, include_fixed_cost=False, discount=None
-        )
-        assert result == Decimal("1.0")
+def test_calculate_cost_without_fixed_cost_or_discount():
+    price = Price(
+        id=1,
+        service_type=ServiceType.ONESHOT,
+        service_subtype=ServiceSubtype.ML_LLM,
+        valid_from=datetime.fromisoformat("2024-01-01T00:00:00Z"),
+        valid_to=None,
+        fixed_cost=Decimal("1.5"),
+        multiplier=Decimal("0.01"),
+        vlab_id=None,
+    )
+    result = test_module.calculate_cost(
+        price=price, usage_value=100, include_fixed_cost=False, discount=None
+    )
+    assert result == Decimal("1.0")
 
-    @staticmethod
-    def test_with_fixed_cost():
-        price = Price(
-            id=1,
-            service_type=ServiceType.ONESHOT,
-            service_subtype=ServiceSubtype.ML_LLM,
-            valid_from=datetime.fromisoformat("2024-01-01T00:00:00Z"),
-            valid_to=None,
-            fixed_cost=Decimal("1.5"),
-            multiplier=Decimal("0.01"),
-            vlab_id=None,
-        )
-        result = test_module.calculate_cost(
-            price=price, usage_value=100, include_fixed_cost=True, discount=None
-        )
-        assert result == Decimal("2.5")
 
-    @staticmethod
-    def test_with_discount():
-        price = Price(
-            id=1,
-            service_type=ServiceType.ONESHOT,
-            service_subtype=ServiceSubtype.ML_LLM,
-            valid_from=datetime.fromisoformat("2024-01-01T00:00:00Z"),
-            valid_to=None,
-            fixed_cost=Decimal(0),
-            multiplier=Decimal("0.01"),
-            vlab_id=None,
-        )
-        discount = Discount(
-            id=1,
-            vlab_id=UUIDS.VLAB[0],
-            valid_from=datetime.fromisoformat("2024-01-01T00:00:00Z"),
-            valid_to=None,
-            discount=Decimal("0.2"),
-        )
-        result = test_module.calculate_cost(
-            price=price, usage_value=100, include_fixed_cost=False, discount=discount
-        )
-        assert result == Decimal("0.8")
+def test_calculate_cost_with_fixed_cost():
+    price = Price(
+        id=1,
+        service_type=ServiceType.ONESHOT,
+        service_subtype=ServiceSubtype.ML_LLM,
+        valid_from=datetime.fromisoformat("2024-01-01T00:00:00Z"),
+        valid_to=None,
+        fixed_cost=Decimal("1.5"),
+        multiplier=Decimal("0.01"),
+        vlab_id=None,
+    )
+    result = test_module.calculate_cost(
+        price=price, usage_value=100, include_fixed_cost=True, discount=None
+    )
+    assert result == Decimal("2.5")
 
-    @staticmethod
-    def test_with_fixed_cost_and_discount():
-        price = Price(
-            id=1,
-            service_type=ServiceType.ONESHOT,
-            service_subtype=ServiceSubtype.ML_LLM,
-            valid_from=datetime.fromisoformat("2024-01-01T00:00:00Z"),
-            valid_to=None,
-            fixed_cost=Decimal("1.5"),
-            multiplier=Decimal("0.01"),
-            vlab_id=None,
-        )
-        discount = Discount(
-            id=1,
-            vlab_id=UUIDS.VLAB[0],
-            valid_from=datetime.fromisoformat("2024-01-01T00:00:00Z"),
-            valid_to=None,
-            discount=Decimal("0.2"),
-        )
-        result = test_module.calculate_cost(
-            price=price, usage_value=100, include_fixed_cost=True, discount=discount
-        )
-        assert result == Decimal("2.0")
+
+def test_calculate_cost_with_discount():
+    price = Price(
+        id=1,
+        service_type=ServiceType.ONESHOT,
+        service_subtype=ServiceSubtype.ML_LLM,
+        valid_from=datetime.fromisoformat("2024-01-01T00:00:00Z"),
+        valid_to=None,
+        fixed_cost=Decimal(0),
+        multiplier=Decimal("0.01"),
+        vlab_id=None,
+    )
+    discount = Discount(
+        id=1,
+        vlab_id=UUIDS.VLAB[0],
+        valid_from=datetime.fromisoformat("2024-01-01T00:00:00Z"),
+        valid_to=None,
+        discount=Decimal("0.2"),
+    )
+    result = test_module.calculate_cost(
+        price=price, usage_value=100, include_fixed_cost=False, discount=discount
+    )
+    assert result == Decimal("0.8")
+
+
+def test_calculate_cost_with_fixed_cost_and_discount():
+    price = Price(
+        id=1,
+        service_type=ServiceType.ONESHOT,
+        service_subtype=ServiceSubtype.ML_LLM,
+        valid_from=datetime.fromisoformat("2024-01-01T00:00:00Z"),
+        valid_to=None,
+        fixed_cost=Decimal("1.5"),
+        multiplier=Decimal("0.01"),
+        vlab_id=None,
+    )
+    discount = Discount(
+        id=1,
+        vlab_id=UUIDS.VLAB[0],
+        valid_from=datetime.fromisoformat("2024-01-01T00:00:00Z"),
+        valid_to=None,
+        discount=Decimal("0.2"),
+    )
+    result = test_module.calculate_cost(
+        price=price, usage_value=100, include_fixed_cost=True, discount=discount
+    )
+    assert result == Decimal("2.0")
 
 
 @pytest.mark.usefixtures("_db_account")
