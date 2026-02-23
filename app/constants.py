@@ -74,8 +74,6 @@ class ServiceSubtype(HyphenStrEnum):
     ION_CHANNEL_BUILD = auto()
     # `neuroagent`; Used for `qa` chat agent
     ML_LLM = auto()
-    ML_RAG = auto()
-    ML_RETRIEVAL = auto()
     NEURON_MESH_SKELETONIZATION = auto()
     # `notebook-service`: Currently running notebook
     NOTEBOOK = auto()
