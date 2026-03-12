@@ -72,6 +72,8 @@ class ServiceSubtype(HyphenStrEnum):
 
     # `Bluenaas`: Build an ion channel model
     ION_CHANNEL_BUILD = auto()
+    # `Bluenaas`: Run an ion channel simulation
+    ION_CHANNEL_SIM = auto()
     # `neuroagent`; Used for `qa` chat agent
     ML_LLM = auto()
     ML_RAG = auto()
