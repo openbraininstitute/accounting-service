@@ -46,7 +46,7 @@ services:
 
   db:
     profiles: [run]
-    image: postgres:16-alpine
+    image: postgres:17-alpine
     environment:
     - POSTGRES_USER=accounting_service
     - POSTGRES_PASSWORD=accounting_service
