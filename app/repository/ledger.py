@@ -31,6 +31,14 @@ class LedgerRepository(BaseRepository):
         """Insert a transaction into journal and ledger, and update the balance accordingly."""
         if amount <= 0:
             L.warning("Negative transaction amount: {}", amount)
+        # Lock both accounts in deterministic order to prevent deadlocks
+        # and ensure consistent insertion order in journal and ledger
+        await self.db.execute(
+            sa.select(Account.id)
+            .where(Account.id.in_([debited_from, credited_to]))
+            .order_by(Account.id)
+            .with_for_update()
+        )
         query = (
             sa.insert(Journal)
             .values(
