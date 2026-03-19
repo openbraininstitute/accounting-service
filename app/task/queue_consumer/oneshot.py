@@ -5,7 +5,6 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.constants import AccountType
 from app.errors import EventError
 from app.repository.group import RepositoryGroup
 from app.schema.queue import OneshotEvent
@@ -21,9 +20,7 @@ class OneshotQueueConsumer(QueueConsumer):
         event = OneshotEvent.model_validate_json(msg["Body"])
         repos = RepositoryGroup(db=db)
 
-        accounts = await repos.account.get_accounts_by_proj_id(
-            proj_id=event.proj_id, for_update={AccountType.PROJ, AccountType.RSV}
-        )
+        accounts = await repos.account.get_accounts_by_proj_id(proj_id=event.proj_id)
 
         job = await repos.job.get_job(job_id=event.job_id)
         if job is None:
