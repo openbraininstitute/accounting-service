@@ -1,5 +1,6 @@
 """Charge for longrun jobs."""
 
+from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
@@ -274,7 +275,7 @@ async def charge_longrun(
             If the job is still running, it's used also to calculate the duration to be charged.
     """
     now = transaction_datetime or utcnow()
-    result = ChargeLongrunResult()
+    counts: Counter[str] = Counter()
     async with session_factory() as db:
         jobs = await RepositoryGroup(db=db).job.get_longrun_to_be_charged()
     for job in jobs:
@@ -290,8 +291,7 @@ async def charge_longrun(
                 await _charge_generic(RepositoryGroup(db=db), job, params)
         except Exception:  # noqa: BLE001
             L.exception("Error processing longrun job {}", job.id)
-            result.failure += 1
+            counts["failure"] += 1
         else:
-            result_attr = params.reason
-            setattr(result, result_attr, getattr(result, result_attr) + 1)
-    return result
+            counts[params.reason] += 1
+    return ChargeLongrunResult(**counts)
