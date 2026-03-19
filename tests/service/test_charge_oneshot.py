@@ -3,7 +3,6 @@ from decimal import Decimal
 import pytest
 
 from app.constants import TransactionType
-from app.repository.group import RepositoryGroup
 from app.schema.domain import ChargeOneshotResult
 from app.service import charge_oneshot as test_module
 from app.utils import create_uuid, utcnow
@@ -13,18 +12,17 @@ from tests.utils import _insert_oneshot_job, _select_job, _select_ledger_rows, _
 
 
 @pytest.mark.usefixtures("_db_account", "_db_price")
-async def test_charge_oneshot(db):
-    repos = RepositoryGroup(db)
+async def test_charge_oneshot(db, session_factory):
     now = utcnow()
 
     # no jobs
-    result = await test_module.charge_oneshot(repos)
+    result = await test_module.charge_oneshot(session_factory)
     assert result == ChargeOneshotResult()
     # new job
     job_id = create_uuid()
     await _insert_oneshot_job(db, job_id, reserved_count=100, reserved_at=now)
 
-    result = await test_module.charge_oneshot(repos)
+    result = await test_module.charge_oneshot(session_factory)
     assert result == ChargeOneshotResult(success=0)
 
     job = await _select_job(db, job_id)
@@ -43,7 +41,7 @@ async def test_charge_oneshot(db):
     assert job.started_at == now
     assert job.finished_at == now
 
-    result = await test_module.charge_oneshot(repos)
+    result = await test_module.charge_oneshot(session_factory)
     assert result == ChargeOneshotResult(success=1)
     job = await _select_job(db, job_id)
     assert job.last_charged_at is not None

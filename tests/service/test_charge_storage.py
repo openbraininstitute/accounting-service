@@ -4,7 +4,6 @@ import pytest
 from asyncpg.pgproto.pgproto import timedelta
 
 from app.constants import TransactionType
-from app.repository.group import RepositoryGroup
 from app.schema.domain import ChargeStorageResult
 from app.service import charge_storage as test_module
 from app.utils import create_uuid, utcnow
@@ -14,12 +13,11 @@ from tests.utils import _insert_storage_job, _select_job, _select_ledger_rows, _
 
 
 @pytest.mark.usefixtures("_db_account", "_db_price")
-async def test_charge_storage(db):
-    repos = RepositoryGroup(db)
+async def test_charge_storage(db, session_factory):
     now = utcnow()
 
     # no jobs
-    result = await test_module.charge_storage(repos, jobs=[])
+    result = await test_module.charge_storage(session_factory, jobs=[])
     assert result == ChargeStorageResult()
 
     # new job
@@ -31,7 +29,7 @@ async def test_charge_storage(db):
 
     transaction_datetime = now - timedelta(minutes=60)
     result = await test_module.charge_storage(
-        repos, jobs=[job], transaction_datetime=transaction_datetime
+        session_factory, jobs=[job], transaction_datetime=transaction_datetime
     )
     assert result == ChargeStorageResult(success=1)
     job = await _select_job(db, job_id)
@@ -63,7 +61,7 @@ async def test_charge_storage(db):
     # running job
     transaction_datetime = now - timedelta(minutes=30)
     result = await test_module.charge_storage(
-        repos, jobs=[job], transaction_datetime=transaction_datetime
+        session_factory, jobs=[job], transaction_datetime=transaction_datetime
     )
 
     assert result == ChargeStorageResult(success=1)
@@ -99,7 +97,7 @@ async def test_charge_storage(db):
 
     transaction_datetime = now - timedelta(minutes=10)
     result = await test_module.charge_storage(
-        repos, jobs=[job], transaction_datetime=transaction_datetime
+        session_factory, jobs=[job], transaction_datetime=transaction_datetime
     )
 
     assert result == ChargeStorageResult(success=1)
@@ -138,7 +136,7 @@ async def test_charge_storage(db):
 
     transaction_datetime = now - timedelta(minutes=10)
     result = await test_module.charge_storage(
-        repos, jobs=[job], transaction_datetime=transaction_datetime
+        session_factory, jobs=[job], transaction_datetime=transaction_datetime
     )
     assert result == ChargeStorageResult(success=1)
     job = await _select_job(db, job_id)

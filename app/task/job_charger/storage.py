@@ -20,16 +20,21 @@ class PeriodicStorageCharger(BaseTask):
         )
 
     async def _run_once(self) -> None:  # noqa: PLR6301
-        async with database_session_manager.session() as db:
+        session_factory = database_session_manager.session
+
+        # get and charge finished jobs not charged or partially charged
+        async with session_factory() as db:
             repos = RepositoryGroup(db=db)
-            # get and charge finished jobs not charged or partially charged
             jobs = await repos.job.get_storage_finished_to_be_charged()
-            await charge_storage(repos=repos, jobs=jobs)
-            # get and charge running jobs
+        await charge_storage(session_factory=session_factory, jobs=jobs)
+
+        # get and charge running jobs
+        async with session_factory() as db:
+            repos = RepositoryGroup(db=db)
             jobs = await repos.job.get_storage_running()
-            await charge_storage(
-                repos=repos,
-                jobs=jobs,
-                min_charging_interval=settings.CHARGE_STORAGE_MIN_CHARGING_INTERVAL,
-                min_charging_amount=settings.CHARGE_STORAGE_MIN_CHARGING_AMOUNT,
-            )
+        await charge_storage(
+            session_factory=session_factory,
+            jobs=jobs,
+            min_charging_interval=settings.CHARGE_STORAGE_MIN_CHARGING_INTERVAL,
+            min_charging_amount=settings.CHARGE_STORAGE_MIN_CHARGING_AMOUNT,
+        )

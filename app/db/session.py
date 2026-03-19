@@ -1,11 +1,13 @@
 """Database session utils."""
 
-from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
+from collections.abc import AsyncIterator, Callable
+from contextlib import AbstractAsyncContextManager, asynccontextmanager
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 
 from app.logger import L
+
+SessionFactory = Callable[[], AbstractAsyncContextManager[AsyncSession]]
 
 
 class DatabaseSessionManager:

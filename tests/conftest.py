@@ -341,6 +341,15 @@ async def _db_ledger(db, _db_account, _db_price, _db_job):
 
 
 @pytest.fixture
+def session_factory(db):
+    @asynccontextmanager
+    async def _factory():
+        yield db
+
+    return _factory
+
+
+@pytest.fixture
 def mock_uuid():
     i = 0
 

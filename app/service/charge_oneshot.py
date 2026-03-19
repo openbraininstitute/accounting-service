@@ -3,7 +3,7 @@
 from datetime import datetime
 
 from app.constants import D0, TransactionType
-from app.db.utils import try_nested
+from app.db.session import SessionFactory
 from app.logger import L
 from app.repository.group import RepositoryGroup
 from app.schema.domain import ChargeOneshotResult, StartedJob
@@ -89,25 +89,25 @@ async def _charge_generic(
     )
 
 
-async def charge_oneshot(repos: RepositoryGroup) -> ChargeOneshotResult:
+async def charge_oneshot(session_factory: SessionFactory) -> ChargeOneshotResult:
     """Charge for oneshot jobs.
 
     Args:
-        repos: repository group instance.
+        session_factory: async context manager that yields an AsyncSession.
     """
-
-    def _on_error() -> None:
-        L.exception("Error processing oneshot job {}", job.id)
-        result.failure += 1
-
-    def _on_success() -> None:
-        result.success += 1
-
     result = ChargeOneshotResult()
-    jobs = await repos.job.get_oneshot_to_be_charged()
+    async with session_factory() as db:
+        jobs = await RepositoryGroup(db=db).job.get_oneshot_to_be_charged()
     for job in jobs:
-        async with try_nested(repos.db, on_error=_on_error, on_success=_on_success):
-            await _charge_generic(
-                repos, job, charging_at=job.started_at, reason="finished_uncharged"
-            )
+        try:
+            async with session_factory() as db:
+                repos = RepositoryGroup(db=db)
+                await _charge_generic(
+                    repos, job, charging_at=job.started_at, reason="finished_uncharged"
+                )
+        except Exception:  # noqa: BLE001
+            L.exception("Error processing oneshot job {}", job.id)
+            result.failure += 1
+        else:
+            result.success += 1
     return result

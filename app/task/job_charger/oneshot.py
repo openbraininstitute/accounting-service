@@ -2,7 +2,6 @@
 
 from app.config import settings
 from app.db.session import database_session_manager
-from app.repository.group import RepositoryGroup
 from app.service.charge_oneshot import charge_oneshot
 from app.task.job_charger.base import BaseTask
 
@@ -20,6 +19,4 @@ class PeriodicOneshotCharger(BaseTask):
         )
 
     async def _run_once(self) -> None:  # noqa: PLR6301
-        async with database_session_manager.session() as db:
-            repos = RepositoryGroup(db=db)
-            await charge_oneshot(repos=repos)
+        await charge_oneshot(session_factory=database_session_manager.session)
