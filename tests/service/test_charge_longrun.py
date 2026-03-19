@@ -4,7 +4,6 @@ import pytest
 from asyncpg.pgproto.pgproto import timedelta
 
 from app.constants import TransactionType
-from app.repository.group import RepositoryGroup
 from app.schema.domain import ChargeLongrunResult
 from app.service import charge_longrun as test_module
 from app.utils import create_uuid, utcnow
@@ -14,12 +13,11 @@ from tests.utils import _insert_longrun_job, _select_job, _select_ledger_rows, _
 
 
 @pytest.mark.usefixtures("_db_account", "_db_price")
-async def test_charge_longrun(db):
-    repos = RepositoryGroup(db)
+async def test_charge_longrun(db, session_factory):
     now = utcnow()
 
     # no jobs
-    result = await test_module.charge_longrun(repos, transaction_datetime=now)
+    result = await test_module.charge_longrun(session_factory, transaction_datetime=now)
     assert result == ChargeLongrunResult()
 
     # new job
@@ -31,7 +29,9 @@ async def test_charge_longrun(db):
 
     # unfinished_uncharged job
     transaction_datetime = now - timedelta(minutes=5)
-    result = await test_module.charge_longrun(repos, transaction_datetime=transaction_datetime)
+    result = await test_module.charge_longrun(
+        session_factory, transaction_datetime=transaction_datetime
+    )
     assert result == ChargeLongrunResult(
         unfinished_uncharged=1,
     )
@@ -63,7 +63,9 @@ async def test_charge_longrun(db):
 
     # unfinished_charged job
     transaction_datetime = now - timedelta(minutes=4)
-    result = await test_module.charge_longrun(repos, transaction_datetime=transaction_datetime)
+    result = await test_module.charge_longrun(
+        session_factory, transaction_datetime=transaction_datetime
+    )
     assert result == ChargeLongrunResult(
         unfinished_charged=1,
     )
@@ -99,7 +101,9 @@ async def test_charge_longrun(db):
     assert job.finished_at == now
 
     transaction_datetime = now
-    result = await test_module.charge_longrun(repos, transaction_datetime=transaction_datetime)
+    result = await test_module.charge_longrun(
+        session_factory, transaction_datetime=transaction_datetime
+    )
     assert result == ChargeLongrunResult(
         finished_charged=1,
     )
@@ -131,9 +135,7 @@ async def test_charge_longrun(db):
 
 
 @pytest.mark.usefixtures("_db_account", "_db_price")
-async def test_charge_longrun_expired_uncharged(db):
-    repos = RepositoryGroup(db)
-
+async def test_charge_longrun_expired_uncharged(db, session_factory):
     job_id = create_uuid()
     now = utcnow()
     await _insert_longrun_job(db, job_id, instances=1, started_at=now - timedelta(hours=1))
@@ -142,7 +144,7 @@ async def test_charge_longrun_expired_uncharged(db):
     assert job.last_charged_at is None
 
     result = await test_module.charge_longrun(
-        repos, expiration_interval=1800, transaction_datetime=now
+        session_factory, expiration_interval=1800, transaction_datetime=now
     )
     assert result == ChargeLongrunResult(
         expired_uncharged=1,
@@ -177,9 +179,7 @@ async def test_charge_longrun_expired_uncharged(db):
 
 
 @pytest.mark.usefixtures("_db_account", "_db_price")
-async def test_charge_longrun_expired_charged(db):
-    repos = RepositoryGroup(db)
-
+async def test_charge_longrun_expired_charged(db, session_factory):
     job_id = create_uuid()
     now = utcnow()
     await _insert_longrun_job(
@@ -194,7 +194,7 @@ async def test_charge_longrun_expired_charged(db):
     assert job.last_charged_at is not None
 
     result = await test_module.charge_longrun(
-        repos, expiration_interval=1800, transaction_datetime=now
+        session_factory, expiration_interval=1800, transaction_datetime=now
     )
     assert result == ChargeLongrunResult(
         expired_charged=1,

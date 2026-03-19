@@ -2,7 +2,6 @@
 
 from app.config import settings
 from app.db.session import database_session_manager
-from app.repository.group import RepositoryGroup
 from app.service.charge_longrun import charge_longrun
 from app.task.job_charger.base import BaseTask
 
@@ -20,11 +19,9 @@ class PeriodicLongrunCharger(BaseTask):
         )
 
     async def _run_once(self) -> None:  # noqa: PLR6301
-        async with database_session_manager.session() as db:
-            repos = RepositoryGroup(db=db)
-            await charge_longrun(
-                repos=repos,
-                min_charging_interval=settings.CHARGE_LONGRUN_MIN_CHARGING_INTERVAL,
-                min_charging_amount=settings.CHARGE_LONGRUN_MIN_CHARGING_AMOUNT,
-                expiration_interval=settings.CHARGE_LONGRUN_EXPIRATION_INTERVAL,
-            )
+        await charge_longrun(
+            session_factory=database_session_manager.session,
+            min_charging_interval=settings.CHARGE_LONGRUN_MIN_CHARGING_INTERVAL,
+            min_charging_amount=settings.CHARGE_LONGRUN_MIN_CHARGING_AMOUNT,
+            expiration_interval=settings.CHARGE_LONGRUN_EXPIRATION_INTERVAL,
+        )
