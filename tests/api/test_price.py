@@ -106,7 +106,7 @@ async def test_estimate_oneshot_cost_with_fixed_cost(api_client):
     # First create a price with fixed cost
     price_data = {
         "service_type": ServiceType.ONESHOT,
-        "service_subtype": ServiceSubtype.ML_RAG,
+        "service_subtype": ServiceSubtype.ML_LLM,
         "valid_from": "2024-01-01T00:00:00Z",
         "valid_to": None,
         "fixed_cost": "2.5",
@@ -118,7 +118,7 @@ async def test_estimate_oneshot_cost_with_fixed_cost(api_client):
     request_payload = {
         "proj_id": PROJ_ID,
         "type": ServiceType.ONESHOT,
-        "subtype": ServiceSubtype.ML_RAG,
+        "subtype": ServiceSubtype.ML_LLM,
         "count": 100000,
     }
     response = await api_client.post("/estimate/oneshot", json=request_payload)
@@ -159,7 +159,7 @@ async def test_estimate_oneshot_cost_with_discount_and_fixed_cost(api_client):
     # Create a price with fixed cost
     price_data = {
         "service_type": ServiceType.ONESHOT,
-        "service_subtype": ServiceSubtype.ML_RAG,
+        "service_subtype": ServiceSubtype.ML_LLM,
         "valid_from": "2024-01-01T00:00:00Z",
         "valid_to": None,
         "fixed_cost": "2.0",
@@ -180,7 +180,7 @@ async def test_estimate_oneshot_cost_with_discount_and_fixed_cost(api_client):
     request_payload = {
         "proj_id": PROJ_ID,
         "type": ServiceType.ONESHOT,
-        "subtype": ServiceSubtype.ML_RAG,
+        "subtype": ServiceSubtype.ML_LLM,
         "count": 100000,
     }
     response = await api_client.post("/estimate/oneshot", json=request_payload)
@@ -197,7 +197,7 @@ async def test_estimate_oneshot_cost_missing_price(api_client):
     request_payload = {
         "proj_id": PROJ_ID,
         "type": ServiceType.ONESHOT,
-        "subtype": ServiceSubtype.ML_RETRIEVAL,
+        "subtype": ServiceSubtype.ML_LLM,
         "count": 1000,
     }
     response = await api_client.post("/estimate/oneshot", json=request_payload)
