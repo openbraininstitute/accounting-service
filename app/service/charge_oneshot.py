@@ -33,7 +33,8 @@ async def _charge_generic(
     total_amount = calculate_cost(
         price=price,
         discount=discount,
-        usage_value=usage_value,
+        previous_usage=0,
+        current_usage=usage_value,
         include_fixed_cost=True,
     )
     if total_amount < 0:

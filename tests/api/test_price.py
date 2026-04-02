@@ -12,13 +12,19 @@ async def test_post_price(api_client):
         "valid_from": "2024-01-01T00:00:00Z",
         "valid_to": None,
         "fixed_cost": "0",
-        "multiplier": "0.00001",
         "vlab_id": None,
+        "tiers": [
+            {"min_quantity": 0, "max_quantity": None, "base_cost": "0", "multiplier": "0.00001"},
+        ],
     }
     response = await api_client.post("/price", json=data)
 
-    assert response.json()["data"] == data | {"id": 1}
     assert response.status_code == 201
+    result = response.json()["data"]
+    assert result["service_type"] == data["service_type"]
+    assert result["fixed_cost"] == "0"
+    assert len(result["tiers"]) == 1
+    assert result["tiers"][0]["multiplier"] == "0.00001"
 
 
 @pytest.mark.usefixtures("_db_account")
@@ -29,13 +35,15 @@ async def test_post_price_with_vlab_and_valid_to(api_client):
         "valid_from": "2024-01-01T00:00:00Z",
         "valid_to": "2034-01-01T00:00:00Z",
         "fixed_cost": "0",
-        "multiplier": "0.00001",
         "vlab_id": VLAB_ID,
+        "tiers": [
+            {"min_quantity": 0, "max_quantity": None, "base_cost": "0", "multiplier": "0.00001"},
+        ],
     }
     response = await api_client.post("/price", json=data)
 
-    assert response.json()["data"] == data | {"id": 1}
     assert response.status_code == 201
+    assert response.json()["data"]["vlab_id"] == VLAB_ID
 
 
 @pytest.mark.usefixtures("_db_account")
@@ -46,8 +54,10 @@ async def test_post_price_with_proj_instead_of_vlab(api_client):
         "valid_from": "2024-01-01T00:00:00Z",
         "valid_to": None,
         "fixed_cost": "0",
-        "multiplier": "0.00001",
         "vlab_id": PROJ_ID,
+        "tiers": [
+            {"min_quantity": 0, "max_quantity": None, "base_cost": "0", "multiplier": "0.00001"},
+        ],
     }
     response = await api_client.post("/price", json=data)
 
@@ -61,8 +71,10 @@ async def test_post_price_with_invalid_valid_to(api_client):
         "valid_from": "2024-01-01T00:00:00Z",
         "valid_to": "2023-01-01T00:00:00Z",
         "fixed_cost": "0",
-        "multiplier": "0.00001",
         "vlab_id": None,
+        "tiers": [
+            {"min_quantity": 0, "max_quantity": None, "base_cost": "0", "multiplier": "0.00001"},
+        ],
     }
     response = await api_client.post("/price", json=data)
 
@@ -76,8 +88,61 @@ async def test_post_price_with_invalid_costs(api_client):
         "valid_from": "2024-01-01T00:00:00Z",
         "valid_to": None,
         "fixed_cost": "-1.0",
-        "multiplier": "-0.00001",
         "vlab_id": None,
+        "tiers": [
+            {"min_quantity": 0, "max_quantity": None, "base_cost": "0", "multiplier": "-0.00001"},
+        ],
+    }
+    response = await api_client.post("/price", json=data)
+
+    assert response.status_code == 422
+
+
+async def test_post_price_with_empty_tiers(api_client):
+    data = {
+        "service_type": ServiceType.ONESHOT,
+        "service_subtype": ServiceSubtype.ML_LLM,
+        "valid_from": "2024-01-01T00:00:00Z",
+        "valid_to": None,
+        "fixed_cost": "0",
+        "vlab_id": None,
+        "tiers": [],
+    }
+    response = await api_client.post("/price", json=data)
+
+    assert response.status_code == 422
+
+
+async def test_post_price_with_non_contiguous_tiers(api_client):
+    """Non-contiguous tier ranges are rejected."""
+    data = {
+        "service_type": ServiceType.ONESHOT,
+        "service_subtype": ServiceSubtype.ML_LLM,
+        "valid_from": "2024-01-01T00:00:00Z",
+        "valid_to": None,
+        "fixed_cost": "0",
+        "vlab_id": None,
+        "tiers": [
+            {"min_quantity": 0, "max_quantity": 100, "base_cost": "0", "multiplier": "0.01"},
+            {"min_quantity": 200, "max_quantity": None, "base_cost": "1.0", "multiplier": "0.005"},
+        ],
+    }
+    response = await api_client.post("/price", json=data)
+
+    assert response.status_code == 422
+
+
+async def test_post_price_with_first_tier_not_starting_at_zero(api_client):
+    data = {
+        "service_type": ServiceType.ONESHOT,
+        "service_subtype": ServiceSubtype.ML_LLM,
+        "valid_from": "2024-01-01T00:00:00Z",
+        "valid_to": None,
+        "fixed_cost": "0",
+        "vlab_id": None,
+        "tiers": [
+            {"min_quantity": 10, "max_quantity": None, "base_cost": "0", "multiplier": "0.01"},
+        ],
     }
     response = await api_client.post("/price", json=data)
 
@@ -103,15 +168,16 @@ async def test_estimate_oneshot_cost_with_proj_id(api_client):
 @pytest.mark.usefixtures("_db_account")
 async def test_estimate_oneshot_cost_with_fixed_cost(api_client):
     """Test cost estimation with fixed cost included."""
-    # First create a price with fixed cost
     price_data = {
         "service_type": ServiceType.ONESHOT,
         "service_subtype": ServiceSubtype.ML_RAG,
         "valid_from": "2024-01-01T00:00:00Z",
         "valid_to": None,
         "fixed_cost": "2.5",
-        "multiplier": "0.00001",
         "vlab_id": None,
+        "tiers": [
+            {"min_quantity": 0, "max_quantity": None, "base_cost": "0", "multiplier": "0.00001"},
+        ],
     }
     await api_client.post("/price", json=price_data)
 
@@ -131,7 +197,6 @@ async def test_estimate_oneshot_cost_with_fixed_cost(api_client):
 @pytest.mark.usefixtures("_db_account", "_db_price")
 async def test_estimate_oneshot_cost_with_discount(api_client):
     """Test cost estimation with discount applied."""
-    # Create a discount
     discount_data = {
         "vlab_id": VLAB_ID,
         "discount": "0.2",  # 20% discount
@@ -156,19 +221,19 @@ async def test_estimate_oneshot_cost_with_discount(api_client):
 @pytest.mark.usefixtures("_db_account")
 async def test_estimate_oneshot_cost_with_discount_and_fixed_cost(api_client):
     """Test cost estimation with both fixed cost and discount."""
-    # Create a price with fixed cost
     price_data = {
         "service_type": ServiceType.ONESHOT,
         "service_subtype": ServiceSubtype.ML_RAG,
         "valid_from": "2024-01-01T00:00:00Z",
         "valid_to": None,
         "fixed_cost": "2.0",
-        "multiplier": "0.00001",
         "vlab_id": None,
+        "tiers": [
+            {"min_quantity": 0, "max_quantity": None, "base_cost": "0", "multiplier": "0.00001"},
+        ],
     }
     await api_client.post("/price", json=price_data)
 
-    # Create a discount
     discount_data = {
         "vlab_id": VLAB_ID,
         "discount": "0.1",  # 10% discount

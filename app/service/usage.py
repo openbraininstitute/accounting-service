@@ -1,5 +1,7 @@
 """Usage service."""
 
+from datetime import datetime
+
 from app.config import settings
 from app.logger import L
 from app.queue.session import SQSManager
@@ -24,6 +26,19 @@ def calculate_longrun_usage_value(
     return int(instances * duration)
 
 
+def calculate_longrun_cumulative_usage(
+    instances: int,
+    instance_type: str | None,
+    charged_from: datetime,
+    charged_until: datetime,
+) -> int:
+    """Return the cumulative usage for longrun jobs from charged_from to charged_until."""
+    duration = int((charged_until - charged_from).total_seconds())
+    return calculate_longrun_usage_value(
+        instances=instances, instance_type=instance_type, duration=duration
+    )
+
+
 def calculate_oneshot_usage_value(count: int) -> int:
     """Return the usage_value.
 
@@ -41,6 +56,16 @@ def calculate_storage_usage_value(size: int, duration: float) -> int:
         duration: duration in seconds.
     """
     return int(size * duration)
+
+
+def calculate_storage_cumulative_usage(
+    size: int,
+    charged_from: datetime,
+    charged_until: datetime,
+) -> int:
+    """Return the cumulative usage for storage jobs from charged_from to charged_until."""
+    duration = int((charged_until - charged_from).total_seconds())
+    return calculate_storage_usage_value(size=size, duration=duration)
 
 
 async def add_oneshot_usage(event: OneshotEvent, sqs_manager: SQSManager) -> None:

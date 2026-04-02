@@ -16,7 +16,7 @@ from sqlalchemy import (
     text,
     true,
 )
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from app.constants import AccountType, EventStatus, ServiceSubtype, ServiceType, TransactionType
 from app.db.types import BIGINT, CREATED_AT, JSON_DICT, UPDATED_AT
@@ -136,10 +136,26 @@ class Price(Base):
     valid_from: Mapped[datetime]
     valid_to: Mapped[datetime | None]
     fixed_cost: Mapped[Decimal]
-    multiplier: Mapped[Decimal]
     vlab_id: Mapped[UUID | None] = mapped_column(ForeignKey("account.id"), index=True)
     created_at: Mapped[CREATED_AT]
     updated_at: Mapped[UPDATED_AT]
+
+    tiers: Mapped[list["PriceTier"]] = relationship(
+        order_by="PriceTier.min_quantity", lazy="selectin"
+    )
+
+
+class PriceTier(Base):
+    """Price tier table."""
+
+    __tablename__ = "price_tier"
+
+    id: Mapped[BIGINT] = mapped_column(Identity(), primary_key=True)
+    price_id: Mapped[BIGINT] = mapped_column(ForeignKey("price.id"), index=True)
+    min_quantity: Mapped[int]
+    max_quantity: Mapped[int | None]
+    base_cost: Mapped[Decimal]
+    multiplier: Mapped[Decimal]
 
 
 class Discount(Base):

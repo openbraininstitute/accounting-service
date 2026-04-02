@@ -11,7 +11,7 @@ from app.logger import L
 from app.repository.group import RepositoryGroup
 from app.schema.domain import ChargeStorageResult, StartedJob
 from app.service.price import calculate_cost
-from app.service.usage import calculate_storage_usage_value
+from app.service.usage import calculate_storage_cumulative_usage
 from app.utils import utcnow
 
 
@@ -54,14 +54,21 @@ async def _charge_one(
     )
     discount = await repos.discount.get_current_vlab_discount(accounts.vlab.id)
     discount_id = None if not discount else discount.id
-    usage_value = calculate_storage_usage_value(
+    previous_usage = calculate_storage_cumulative_usage(
         size=job.usage_params["size"],
-        duration=total_seconds,
+        charged_from=job.started_at,
+        charged_until=charging_start,
+    )
+    current_usage = calculate_storage_cumulative_usage(
+        size=job.usage_params["size"],
+        charged_from=job.started_at,
+        charged_until=charging_at,
     )
     total_amount = calculate_cost(
         price=price,
         discount=discount,
-        usage_value=usage_value,
+        previous_usage=previous_usage,
+        current_usage=current_usage,
         include_fixed_cost=False,
     )
     if not job.finished_at and abs(total_amount) < min_charging_amount:

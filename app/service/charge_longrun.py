@@ -11,7 +11,7 @@ from app.logger import L
 from app.repository.group import RepositoryGroup
 from app.schema.domain import ChargeLongrunResult, StartedJob
 from app.service.price import calculate_cost
-from app.service.usage import calculate_longrun_usage_value
+from app.service.usage import calculate_longrun_cumulative_usage
 from app.utils import utcnow
 
 
@@ -52,15 +52,23 @@ async def _charge_generic(
     )
     discount = await repos.discount.get_current_vlab_discount(accounts.vlab.id)
     discount_id = None if not discount else discount.id
-    usage_value = calculate_longrun_usage_value(
+    previous_usage = calculate_longrun_cumulative_usage(
         instances=job.usage_params["instances"],
         instance_type=job.usage_params.get("instance_type"),
-        duration=total_seconds,
+        charged_from=job.started_at,
+        charged_until=params.charge_start,
+    )
+    current_usage = calculate_longrun_cumulative_usage(
+        instances=job.usage_params["instances"],
+        instance_type=job.usage_params.get("instance_type"),
+        charged_from=job.started_at,
+        charged_until=params.charge_end,
     )
     total_amount = calculate_cost(
         price=price,
         discount=discount,
-        usage_value=usage_value,
+        previous_usage=previous_usage,
+        current_usage=current_usage,
         include_fixed_cost=params.include_fixed_cost,
     )
     if abs(total_amount) < params.min_charging_amount:
