@@ -131,7 +131,7 @@ def _tier(min_q, max_q, fixed, mult):
             id="three_tiers_incremental_crossing_two_boundaries",
         ),
         pytest.param(
-            [_tier(0, 21, 5, 0), _tier(21, None, 45, 0)],
+            [_tier(0, 20, 5, 0), _tier(20, None, 45, 0)],
             0,
             10,
             None,
@@ -139,20 +139,20 @@ def _tier(min_q, max_q, fixed, mult):
             id="step_function_first_tier",
         ),
         pytest.param(
-            [_tier(0, 21, 5, 0), _tier(21, None, 45, 0)],
+            [_tier(0, 20, 5, 0), _tier(20, None, 45, 0)],
             0,
             20,
             None,
-            "5",  # fixed 5
-            id="step_function_first_tier_boundary",
+            "5",  # fixed 5 (up to 20 stays in tier 1)
+            id="step_function_at_boundary",
         ),
         pytest.param(
-            [_tier(0, 21, 5, 0), _tier(21, None, 45, 0)],
+            [_tier(0, 20, 5, 0), _tier(20, None, 45, 0)],
             0,
-            100,
+            21,
             None,
-            "50",  # fixed 5 + fixed 45
-            id="step_function_second_tier",
+            "50",  # fixed 5 + fixed 45 (above 20 enters tier 2)
+            id="step_function_past_boundary",
         ),
     ],
 )

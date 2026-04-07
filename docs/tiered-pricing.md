@@ -113,12 +113,12 @@ Up to 20 units → 5 credits flat, above 20 → 50 credits flat:
   "tiers": [
     {
       "min_quantity": 0,
-      "max_quantity": 21,
+      "max_quantity": 20,
       "fixed_cost": "5",
       "multiplier": "0"
     },
     {
-      "min_quantity": 21,
+      "min_quantity": 20,
       "max_quantity": null,
       "fixed_cost": "45",
       "multiplier": "0"
@@ -133,7 +133,7 @@ Since the multiplier is 0, the cost is entirely determined by `fixed_cost`. Tier
 | ----- | ---- | ---------- |
 | 10    | 1    | 5 = **5**  |
 | 20    | 1    | 5 = **5**  |
-| 100   | 2    | 5 + 45 = **50** |
+| 21    | 2    | 5 + 45 = **50** |
 
 ### Graduated pricing with a setup fee
 

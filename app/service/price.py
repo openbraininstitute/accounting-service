@@ -13,6 +13,7 @@ from app.utils import utcnow
 def _iter_cost(tiers: list[PriceTier], start: int, end: int) -> Decimal:
     """Return the usage cost from start to end by iterating over tiers.
 
+    Each tier covers the range [min_quantity, max_quantity).
     Each tier's fixed_cost is added once when the usage enters that tier.
     Each tier's multiplier applies to the portion of usage within that tier's range.
     """
