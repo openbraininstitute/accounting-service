@@ -26,6 +26,17 @@ def make_price_data(**overrides):
     } | overrides
 
 
+def assert_validation_error(response, *, error_type, msg=None, loc=None):
+    """Assert that the response is a 422 validation error with the expected details."""
+    assert response.status_code == 422
+    detail = response.json()["details"][0]
+    assert detail["type"] == error_type
+    if msg is not None:
+        assert msg in detail["msg"]
+    if loc is not None:
+        assert detail["loc"] == loc
+
+
 async def truncate_tables(session):
     query = text(f"""TRUNCATE {",".join(Base.metadata.tables)} RESTART IDENTITY CASCADE""")
     await session.execute(query)

@@ -1,17 +1,7 @@
 import pytest
 
 from tests.constants import PROJ_ID, VLAB_ID
-from tests.utils import DEFAULT_PRICE_TIER, make_price_data
-
-
-def _assert_validation_error(response, *, error_type, msg=None, loc=None):
-    assert response.status_code == 422
-    detail = response.json()["details"][0]
-    assert detail["type"] == error_type
-    if msg is not None:
-        assert msg in detail["msg"]
-    if loc is not None:
-        assert detail["loc"] == loc
+from tests.utils import DEFAULT_PRICE_TIER, assert_validation_error, make_price_data
 
 
 async def test_post_price(api_client):
@@ -46,7 +36,7 @@ async def test_post_price_with_invalid_valid_to(api_client):
     data = make_price_data(valid_to="2023-01-01T00:00:00Z")
     response = await api_client.post("/price", json=data)
 
-    _assert_validation_error(
+    assert_validation_error(
         response,
         error_type="value_error",
         msg="valid_to must be greater than valid_from",
@@ -57,7 +47,7 @@ async def test_post_price_with_invalid_costs(api_client):
     data = make_price_data(tiers=[{**DEFAULT_PRICE_TIER, "multiplier": "-0.00001"}])
     response = await api_client.post("/price", json=data)
 
-    _assert_validation_error(
+    assert_validation_error(
         response,
         error_type="greater_than_equal",
         msg="Input should be greater than or equal to 0",
@@ -69,7 +59,7 @@ async def test_post_price_with_empty_tiers(api_client):
     data = make_price_data(tiers=[])
     response = await api_client.post("/price", json=data)
 
-    _assert_validation_error(
+    assert_validation_error(
         response,
         error_type="too_short",
         msg="List should have at least 1 item",
@@ -87,7 +77,7 @@ async def test_post_price_with_non_contiguous_tiers(api_client):
     )
     response = await api_client.post("/price", json=data)
 
-    _assert_validation_error(
+    assert_validation_error(
         response,
         error_type="value_error",
         msg="Tiers must be contiguous",
@@ -98,7 +88,7 @@ async def test_post_price_with_first_tier_not_starting_at_zero(api_client):
     data = make_price_data(tiers=[{**DEFAULT_PRICE_TIER, "min_quantity": 10}])
     response = await api_client.post("/price", json=data)
 
-    _assert_validation_error(
+    assert_validation_error(
         response,
         error_type="value_error",
         msg="First tier must start at min_quantity=0",

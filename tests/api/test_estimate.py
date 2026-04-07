@@ -3,7 +3,7 @@ import pytest
 from app.constants import ServiceSubtype, ServiceType
 
 from tests.constants import PROJ_ID, VLAB_ID
-from tests.utils import DEFAULT_PRICE_TIER, make_price_data
+from tests.utils import DEFAULT_PRICE_TIER, assert_validation_error, make_price_data
 
 
 @pytest.mark.usefixtures("_db_account", "_db_price")
@@ -139,7 +139,12 @@ async def test_estimate_oneshot_cost_missing_proj_id(api_client):
     }
     response = await api_client.post("/estimate/oneshot", json=request_payload)
 
-    assert response.status_code == 422
+    assert_validation_error(
+        response,
+        error_type="missing",
+        msg="Field required",
+        loc=["body", "proj_id"],
+    )
 
 
 @pytest.mark.usefixtures("_db_account", "_db_price")
