@@ -69,7 +69,6 @@ async def _charge_one(
         discount=discount,
         previous_usage=previous_usage,
         current_usage=current_usage,
-        include_fixed_cost=False,
     )
     if not job.finished_at and abs(total_amount) < min_charging_amount:
         L.debug(

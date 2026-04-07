@@ -48,7 +48,6 @@ async def _make_reservation(
         discount=discount,
         previous_usage=0,
         current_usage=usage_value,
-        include_fixed_cost=True,
     )
     if requested_amount > available_amount:
         L.info(

@@ -224,7 +224,7 @@ class PriceTierIn(BaseModel):
 
     min_quantity: Annotated[int, Field(ge=0)]
     max_quantity: int | None = None
-    base_cost: Annotated[Decimal, Field(ge=D0)]
+    fixed_cost: Annotated[Decimal, Field(ge=D0)]
     multiplier: Annotated[Decimal, Field(ge=D0)]
 
 
@@ -241,7 +241,6 @@ class AddPriceBase(BaseModel):
     service_subtype: ServiceSubtype
     valid_from: AwareDatetime
     valid_to: AwareDatetime | None
-    fixed_cost: Annotated[Decimal, Field(ge=D0)]
     vlab_id: UUID | None
 
 

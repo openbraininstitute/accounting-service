@@ -1,4 +1,4 @@
-"""Add price_tier table and migrate data from price
+"""Add price_tier table, migrate data from price, remove price.fixed_cost
 
 Revision ID: 3642bb905be6
 Revises: 75dc053ee063
@@ -27,7 +27,7 @@ def upgrade() -> None:
         sa.Column("price_id", sa.BigInteger(), nullable=False),
         sa.Column("min_quantity", sa.Integer(), nullable=False),
         sa.Column("max_quantity", sa.Integer(), nullable=True),
-        sa.Column("base_cost", sa.Numeric(), nullable=False),
+        sa.Column("fixed_cost", sa.Numeric(), nullable=False),
         sa.Column("multiplier", sa.Numeric(), nullable=False),
         sa.ForeignKeyConstraint(
             ["price_id"], ["price.id"], name=op.f("fk_price_tier_price_id_price")
@@ -37,31 +37,34 @@ def upgrade() -> None:
     op.create_index(op.f("ix_price_tier_price_id"), "price_tier", ["price_id"], unique=False)
 
     # Migrate existing price data into single-tier rows.
-    # The old multiplier becomes the tier multiplier, base_cost is 0 since
-    # there's only one tier. The old fixed_cost stays on the price table.
+    # The old price.multiplier becomes the tier multiplier.
+    # The old price.fixed_cost becomes the tier fixed_cost.
     op.execute(
         """
-        INSERT INTO price_tier (price_id, min_quantity, max_quantity, base_cost, multiplier)
-        SELECT id, 0, NULL, 0, multiplier
+        INSERT INTO price_tier (price_id, min_quantity, max_quantity, fixed_cost, multiplier)
+        SELECT id, 0, NULL, fixed_cost, multiplier
         FROM price
         """
     )
 
-    # Drop the multiplier column from price (fixed_cost stays)
     op.drop_column("price", "multiplier")
+    op.drop_column("price", "fixed_cost")
 
 
 def downgrade() -> None:
-    # Re-add multiplier to price, initially nullable
+    # Re-add columns to price, initially nullable
     op.add_column(
         "price", sa.Column("multiplier", sa.NUMERIC(), autoincrement=False, nullable=True)
     )
+    op.add_column(
+        "price", sa.Column("fixed_cost", sa.NUMERIC(), autoincrement=False, nullable=True)
+    )
 
-    # Migrate multiplier back from the first tier
+    # Migrate back from the first tier
     op.execute(
         """
         UPDATE price
-        SET multiplier = pt.multiplier
+        SET multiplier = pt.multiplier, fixed_cost = pt.fixed_cost
         FROM price_tier pt
         WHERE pt.price_id = price.id AND pt.min_quantity = 0
         """
@@ -69,6 +72,7 @@ def downgrade() -> None:
 
     # Set NOT NULL after populating
     op.alter_column("price", "multiplier", nullable=False)
+    op.alter_column("price", "fixed_cost", nullable=False)
 
     # Drop price_tier table
     op.drop_index(op.f("ix_price_tier_price_id"), table_name="price_tier")

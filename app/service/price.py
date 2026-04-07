@@ -13,7 +13,7 @@ from app.utils import utcnow
 def _iter_cost(tiers: list[PriceTier], start: int, end: int) -> Decimal:
     """Return the usage cost from start to end by iterating over tiers.
 
-    Each tier's base_cost is added once when the usage enters that tier.
+    Each tier's fixed_cost is added once when the usage enters that tier.
     Each tier's multiplier applies to the portion of usage within that tier's range.
     """
     cost = Decimal(0)
@@ -25,7 +25,7 @@ def _iter_cost(tiers: list[PriceTier], start: int, end: int) -> Decimal:
         if tier_start >= tier_end:
             continue
         if start <= tier.min_quantity:
-            cost += tier.base_cost
+            cost += tier.fixed_cost
         cost += tier.multiplier * (tier_end - tier_start)
     return cost
 
@@ -35,7 +35,6 @@ def calculate_cost(
     *,
     previous_usage: int,
     current_usage: int,
-    include_fixed_cost: bool,
     discount: Discount | None,
 ) -> Decimal:
     """Return the incremental cost between previous_usage and current_usage.
@@ -44,13 +43,9 @@ def calculate_cost(
         price: the price with tiers.
         previous_usage: cumulative usage already charged (0 for first charge).
         current_usage: cumulative usage including the new increment.
-        include_fixed_cost: whether to include the one-time price.fixed_cost,
-            not depending on the tier.
         discount: optional discount to apply to the final cost, not to the separate cost components.
     """
     cost = _iter_cost(price.tiers, start=previous_usage, end=current_usage)
-    if include_fixed_cost:
-        cost += price.fixed_cost
     if discount:
         cost *= Decimal(1) - discount.discount
     return cost
@@ -94,7 +89,6 @@ async def estimate_oneshot_cost(
         previous_usage=0,
         current_usage=usage_value,
         discount=discount,
-        include_fixed_cost=True,
     )
 
     return EstimateCostOut(cost=cost)

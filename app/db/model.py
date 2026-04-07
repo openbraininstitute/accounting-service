@@ -135,7 +135,6 @@ class Price(Base):
     service_subtype: Mapped[ServiceSubtype] = mapped_column(index=True)
     valid_from: Mapped[datetime]
     valid_to: Mapped[datetime | None]
-    fixed_cost: Mapped[Decimal]
     vlab_id: Mapped[UUID | None] = mapped_column(ForeignKey("account.id"), index=True)
     created_at: Mapped[CREATED_AT]
     updated_at: Mapped[UPDATED_AT]
@@ -154,7 +153,7 @@ class PriceTier(Base):
     price_id: Mapped[BIGINT] = mapped_column(ForeignKey("price.id"), index=True)
     min_quantity: Mapped[int]
     max_quantity: Mapped[int | None]
-    base_cost: Mapped[Decimal]
+    fixed_cost: Mapped[Decimal]
     multiplier: Mapped[Decimal]
 
 

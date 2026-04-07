@@ -6,6 +6,25 @@ from app.db.model import Base, Job, Journal, Ledger
 
 from tests.constants import PROJ_ID, VLAB_ID
 
+DEFAULT_PRICE_TIER = {
+    "min_quantity": 0,
+    "max_quantity": None,
+    "fixed_cost": "0",
+    "multiplier": "0.00001",
+}
+
+
+def make_price_data(**overrides):
+    """Return a default valid price API payload, with optional overrides."""
+    return {
+        "service_type": ServiceType.ONESHOT,
+        "service_subtype": ServiceSubtype.ML_LLM,
+        "valid_from": "2024-01-01T00:00:00Z",
+        "valid_to": None,
+        "vlab_id": None,
+        "tiers": [DEFAULT_PRICE_TIER],
+    } | overrides
+
 
 async def truncate_tables(session):
     query = text(f"""TRUNCATE {",".join(Base.metadata.tables)} RESTART IDENTITY CASCADE""")
