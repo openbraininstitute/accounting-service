@@ -59,6 +59,7 @@ destroy: ## Take down the application and remove the volumes
 test: build  ## Run tests in Docker
 	docker compose run --rm test
 
+TESTS ?= tests
 test-local: export DB_HOST=127.0.0.1
 test-local: export DB_PORT=5434
 test-local: export AWS_DEFAULT_REGION=us-east-1
@@ -66,7 +67,7 @@ test-local: export AWS_ENDPOINT_URL=http://127.0.0.1:9324
 test-local:  ## Run tests locally
 	docker compose up --wait db-test
 	uv run -m alembic upgrade head
-	uv run -m pytest
+	uv run -m pytest $(TESTS)
 
 migration: export DB_HOST=127.0.0.1
 migration: export DB_PORT=5433

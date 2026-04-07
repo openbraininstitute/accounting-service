@@ -197,7 +197,7 @@ async def test_estimate_oneshot_cost_missing_price(api_client):
     request_payload = {
         "proj_id": PROJ_ID,
         "type": ServiceType.ONESHOT,
-        "subtype": ServiceSubtype.ML_LLM,
+        "subtype": ServiceSubtype.NEURON_MESH_SKELETONIZATION,
         "count": 1000,
     }
     response = await api_client.post("/estimate/oneshot", json=request_payload)
