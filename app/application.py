@@ -93,6 +93,7 @@ app = FastAPI(
         RequestValidationError: validation_exception_handler,
     },
     root_path=settings.ROOT_PATH,
+    strict_content_type=False,
 )
 app.add_middleware(
     CORSMiddleware,
