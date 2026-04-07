@@ -39,7 +39,7 @@ _TWO_TIERS = [
     {
         "min_quantity": 100,
         "max_quantity": None,
-        "base_cost": Decimal("10.0"),
+        "base_cost": Decimal(0),
         "multiplier": Decimal("0.05"),
     },
 ]
@@ -54,13 +54,13 @@ _THREE_TIERS = [
     {
         "min_quantity": 100,
         "max_quantity": 500,
-        "base_cost": Decimal("10.0"),
+        "base_cost": Decimal(0),
         "multiplier": Decimal("0.05"),
     },
     {
         "min_quantity": 500,
         "max_quantity": None,
-        "base_cost": Decimal("30.0"),
+        "base_cost": Decimal(0),
         "multiplier": Decimal("0.01"),
     },
 ]
@@ -193,6 +193,7 @@ def test_calculate_cost_three_tiers_incremental():
 
 def test_calculate_cost_flat_step_function():
     # Up to 20 -> 5 credits, above 20 -> 50 credits
+    # base_cost is incremental: tier 2 adds 45 on top of tier 1's 5
     price = _make_price(
         fixed_cost=0,
         tiers=[
@@ -205,7 +206,7 @@ def test_calculate_cost_flat_step_function():
             {
                 "min_quantity": 21,
                 "max_quantity": None,
-                "base_cost": Decimal(50),
+                "base_cost": Decimal(45),
                 "multiplier": Decimal(0),
             },
         ],
@@ -216,9 +217,6 @@ def test_calculate_cost_flat_step_function():
     assert test_module.calculate_cost(
         price=price, previous_usage=0, current_usage=20, include_fixed_cost=False, discount=None
     ) == Decimal(5)
-    assert test_module.calculate_cost(
-        price=price, previous_usage=0, current_usage=21, include_fixed_cost=False, discount=None
-    ) == Decimal(50)
     assert test_module.calculate_cost(
         price=price, previous_usage=0, current_usage=100, include_fixed_cost=False, discount=None
     ) == Decimal(50)

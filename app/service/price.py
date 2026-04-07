@@ -10,18 +10,24 @@ from app.service.usage import calculate_oneshot_usage_value
 from app.utils import utcnow
 
 
-def _find_tier(price: Price, usage_value: int) -> PriceTier:
-    """Return the tier matching the given usage_value."""
-    for tier in reversed(price.tiers):
-        if usage_value >= tier.min_quantity:
-            return tier
-    return price.tiers[0]
+def _iter_cost(tiers: list[PriceTier], start: int, end: int) -> Decimal:
+    """Return the usage cost from start to end by iterating over tiers.
 
-
-def _tier_cost(price: Price, usage_value: int) -> Decimal:
-    """Return the usage cost at a given cumulative usage, excluding price.fixed_cost."""
-    tier = _find_tier(price, usage_value)
-    return tier.base_cost + tier.multiplier * (usage_value - tier.min_quantity)
+    Each tier's base_cost is added once when the usage enters that tier.
+    Each tier's multiplier applies to the portion of usage within that tier's range.
+    """
+    cost = Decimal(0)
+    for tier in tiers:
+        if end <= tier.min_quantity:
+            break
+        tier_start = max(start, tier.min_quantity)
+        tier_end = end if tier.max_quantity is None else min(end, tier.max_quantity)
+        if tier_start >= tier_end:
+            continue
+        if start <= tier.min_quantity:
+            cost += tier.base_cost
+        cost += tier.multiplier * (tier_end - tier_start)
+    return cost
 
 
 def calculate_cost(
@@ -34,22 +40,18 @@ def calculate_cost(
 ) -> Decimal:
     """Return the incremental cost between previous_usage and current_usage.
 
-    The cost is computed as tier_cost(current_usage) - tier_cost(previous_usage),
-    which correctly handles charges that span multiple tier boundaries.
-
     Args:
         price: the price with tiers.
         previous_usage: cumulative usage already charged (0 for first charge).
         current_usage: cumulative usage including the new increment.
-        include_fixed_cost: whether to include the one-time price.fixed_cost.
-        discount: optional discount to apply.
+        include_fixed_cost: whether to include the one-time price.fixed_cost,
+            not depending on the tier.
+        discount: optional discount to apply to the final cost, not to the separate cost components.
     """
-    cost = _tier_cost(price, current_usage) - _tier_cost(price, previous_usage)
+    cost = _iter_cost(price.tiers, start=previous_usage, end=current_usage)
     if include_fixed_cost:
-        # Fixed cost doesn't depend on the tier
         cost += price.fixed_cost
     if discount:
-        # Discount applies to the final cost - not to the separate cost components individually.
         cost *= Decimal(1) - discount.discount
     return cost
 
