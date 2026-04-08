@@ -59,6 +59,7 @@ destroy: ## Take down the application and remove the volumes
 test: build  ## Run tests in Docker
 	docker compose run --rm test
 
+# use `PYTEST_ADDOPTS=` to narrow the pytests run, and add options 
 test-local: export DB_HOST=127.0.0.1
 test-local: export DB_PORT=5434
 test-local: export AWS_DEFAULT_REGION=us-east-1
@@ -68,12 +69,13 @@ test-local:  ## Run tests locally
 	uv run -m alembic upgrade head
 	uv run -m pytest
 
+migration: MESSAGE ?= Default migration message
 migration: export DB_HOST=127.0.0.1
 migration: export DB_PORT=5433
 migration:  ## Create the alembic migration
 	docker compose up --wait db
 	uv run -m alembic upgrade head
-	uv run -m alembic revision --autogenerate
+	uv run -m alembic revision --autogenerate -m "$(MESSAGE)"
 
 populate: export API_URL=http://localhost:8100
 populate:  ## Populate the local db with example data

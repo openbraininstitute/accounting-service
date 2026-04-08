@@ -81,8 +81,6 @@ class ServiceSubtype(HyphenStrEnum):
     ION_CHANNEL_SIM = auto()
     # `neuroagent`; Used for `qa` chat agent
     ML_LLM = auto()
-    ML_RAG = auto()
-    ML_RETRIEVAL = auto()
     NEURON_MESH_SKELETONIZATION = auto()
     # `notebook-service`: Currently running notebook
     NOTEBOOK = auto()
@@ -107,3 +105,10 @@ class ServiceSubtype(HyphenStrEnum):
     SYSTEM_SIM = auto()
     WHOLE_BRAIN_SIM = auto()
     # } end of `CircuitScale`
+
+    # These are deprecated and should not be used any more
+    ML_RAG = auto()
+    ML_RETRIEVAL = auto()
+
+
+LEGACY_SERVICE_SUBTYPE = {ServiceSubtype.ML_RAG, ServiceSubtype.ML_RETRIEVAL}
