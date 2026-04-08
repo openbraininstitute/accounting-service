@@ -100,3 +100,10 @@ class ServiceSubtype(HyphenStrEnum):
     SYSTEM_SIM = auto()
     WHOLE_BRAIN_SIM = auto()
     # } end of `CircuitScale`
+
+    # These are deprecated and should not be used any more
+    ML_RAG = auto()
+    ML_RETRIEVAL = auto()
+
+
+DEPRECATED_SERVICE_SUBTYPE = {ServiceSubtype.ML_RAG, ServiceSubtype.ML_RETRIEVAL}

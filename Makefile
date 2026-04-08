@@ -69,12 +69,13 @@ test-local:  ## Run tests locally
 	uv run -m alembic upgrade head
 	uv run -m pytest $(TESTS)
 
+migration: MESSAGE ?= Default migration message
 migration: export DB_HOST=127.0.0.1
 migration: export DB_PORT=5433
 migration:  ## Create the alembic migration
 	docker compose up --wait db
 	uv run -m alembic upgrade head
-	uv run -m alembic revision --autogenerate
+	uv run -m alembic revision --autogenerate -m "$(MESSAGE)"
 
 populate: export API_URL=http://localhost:8100
 populate:  ## Populate the local db with example data

@@ -9,7 +9,7 @@ from uuid import UUID
 from pydantic import AwareDatetime, Field, model_validator
 from starlette.datastructures import URL
 
-from app.constants import D0, D1, ServiceSubtype, ServiceType
+from app.constants import D0, D1, DEPRECATED_SERVICE_SUBTYPE, ServiceSubtype, ServiceType
 from app.errors import ApiErrorCode
 from app.schema.common import BaseModel, FormattedDecimal
 
@@ -110,6 +110,14 @@ class BaseMakeReservationIn(BaseModel):
     name: str | None = None
     type: ServiceType
     subtype: ServiceSubtype
+
+    @model_validator(mode="after")
+    def check_deprecated_subtype(self) -> Self:
+        """Check if `subtype` is deprecated."""
+        if self.subtype in DEPRECATED_SERVICE_SUBTYPE:
+            err = f"subtype `{self.subtype} is deprecated"
+            raise ValueError(err)
+        return self
 
 
 class MakeOneshotReservationIn(BaseMakeReservationIn):
@@ -238,6 +246,14 @@ class AddPriceIn(BaseModel):
             raise ValueError(err)
         return self
 
+    @model_validator(mode="after")
+    def check_deprecated_subtype(self) -> Self:
+        """Check if `subtype` is deprecated."""
+        if self.service_subtype in DEPRECATED_SERVICE_SUBTYPE:
+            err = f"subtype `{self.service_subtype} is deprecated"
+            raise ValueError(err)
+        return self
+
 
 class AddPriceOut(AddPriceIn):
     """AddPriceOut."""
@@ -251,6 +267,14 @@ class BaseEstimateCostIn(BaseModel):
     proj_id: UUID
     type: ServiceType
     subtype: ServiceSubtype
+
+    @model_validator(mode="after")
+    def check_deprecated_subtype(self) -> Self:
+        """Check if `subtype` is deprecated."""
+        if self.subtype in DEPRECATED_SERVICE_SUBTYPE:
+            err = f"subtype `{self.subtype} is deprecated"
+            raise ValueError(err)
+        return self
 
 
 class EstimateOneshotCostIn(BaseEstimateCostIn):
