@@ -135,3 +135,21 @@ async def test_make_longrun_reservation_with_job_name(api_client, mock_uuid):
     }
     assert response.status_code == 201
     assert mock_uuid.call_count == 1
+
+
+@pytest.mark.usefixtures("_db_account", "_db_price")
+async def test_error_on_legacy_subtype(api_client):
+    # make a valid reservation
+    request_payload = {
+        "proj_id": PROJ_ID,
+        "user_id": USER_ID,
+        "name": "test job",
+        "group_id": GROUP_ID,
+        "type": ServiceType.LONGRUN,
+        "subtype": ServiceSubtype.ML_RETRIEVAL,
+        "instances": "2",
+        "instance_type": "",
+        "duration": "3600",
+    }
+    response = await api_client.post("/reservation/longrun", json=request_payload)
+    assert response.status_code == 422

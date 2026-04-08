@@ -84,6 +84,21 @@ async def test_post_price_with_invalid_costs(api_client):
     assert response.status_code == 422
 
 
+async def test_post_price_with_legacy_subtype(api_client):
+    data = {
+        "service_type": ServiceType.ONESHOT,
+        "service_subtype": ServiceSubtype.ML_RETRIEVAL,
+        "valid_from": "2024-01-01T00:00:00Z",
+        "valid_to": None,
+        "fixed_cost": "1.0",
+        "multiplier": "0.00001",
+        "vlab_id": None,
+    }
+    response = await api_client.post("/price", json=data)
+
+    assert response.status_code == 422
+
+
 @pytest.mark.usefixtures("_db_account", "_db_price")
 async def test_estimate_oneshot_cost_with_proj_id(api_client):
     """Test cost estimation for oneshot job using proj_id."""
@@ -106,7 +121,7 @@ async def test_estimate_oneshot_cost_with_fixed_cost(api_client):
     # First create a price with fixed cost
     price_data = {
         "service_type": ServiceType.ONESHOT,
-        "service_subtype": ServiceSubtype.ML_RAG,
+        "service_subtype": ServiceSubtype.ML_LLM,
         "valid_from": "2024-01-01T00:00:00Z",
         "valid_to": None,
         "fixed_cost": "2.5",
@@ -118,7 +133,7 @@ async def test_estimate_oneshot_cost_with_fixed_cost(api_client):
     request_payload = {
         "proj_id": PROJ_ID,
         "type": ServiceType.ONESHOT,
-        "subtype": ServiceSubtype.ML_RAG,
+        "subtype": ServiceSubtype.ML_LLM,
         "count": 100000,
     }
     response = await api_client.post("/estimate/oneshot", json=request_payload)
@@ -159,7 +174,7 @@ async def test_estimate_oneshot_cost_with_discount_and_fixed_cost(api_client):
     # Create a price with fixed cost
     price_data = {
         "service_type": ServiceType.ONESHOT,
-        "service_subtype": ServiceSubtype.ML_RAG,
+        "service_subtype": ServiceSubtype.ML_LLM,
         "valid_from": "2024-01-01T00:00:00Z",
         "valid_to": None,
         "fixed_cost": "2.0",
@@ -180,7 +195,7 @@ async def test_estimate_oneshot_cost_with_discount_and_fixed_cost(api_client):
     request_payload = {
         "proj_id": PROJ_ID,
         "type": ServiceType.ONESHOT,
-        "subtype": ServiceSubtype.ML_RAG,
+        "subtype": ServiceSubtype.ML_LLM,
         "count": 100000,
     }
     response = await api_client.post("/estimate/oneshot", json=request_payload)
@@ -197,7 +212,7 @@ async def test_estimate_oneshot_cost_missing_price(api_client):
     request_payload = {
         "proj_id": PROJ_ID,
         "type": ServiceType.ONESHOT,
-        "subtype": ServiceSubtype.ML_RETRIEVAL,
+        "subtype": ServiceSubtype.NEURON_MESH_SKELETONIZATION,
         "count": 1000,
     }
     response = await api_client.post("/estimate/oneshot", json=request_payload)
@@ -248,3 +263,17 @@ async def test_estimate_oneshot_cost_zero_count(api_client):
     assert response.status_code == 200
     # cost = 0 * 0.00001 = 0 (no fixed cost in default price)
     assert response.json()["data"] == {"cost": "0.00"}
+
+
+@pytest.mark.usefixtures("_db_account", "_db_price")
+async def test_estimate_fails_on_legacy_subtype(api_client):
+    """Make sure one can't use legacy subtypes."""
+    request_payload = {
+        "proj_id": PROJ_ID,
+        "type": ServiceType.ONESHOT,
+        "subtype": ServiceSubtype.ML_RAG,
+        "count": 0,
+    }
+    response = await api_client.post("/estimate/oneshot", json=request_payload)
+
+    assert response.status_code == 422

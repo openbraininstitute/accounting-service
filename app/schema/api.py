@@ -9,7 +9,7 @@ from uuid import UUID
 from pydantic import AwareDatetime, Field, model_validator
 from starlette.datastructures import URL
 
-from app.constants import D0, D1, ServiceSubtype, ServiceType
+from app.constants import D0, D1, LEGACY_SERVICE_SUBTYPE, ServiceSubtype, ServiceType
 from app.errors import ApiErrorCode
 from app.schema.common import BaseModel, FormattedDecimal
 
@@ -110,6 +110,14 @@ class BaseMakeReservationIn(BaseModel):
     name: str | None = None
     type: ServiceType
     subtype: ServiceSubtype
+
+    @model_validator(mode="after")
+    def check_legacy_subtype(self) -> Self:
+        """Check if `subtype` is legacy."""
+        if self.subtype in LEGACY_SERVICE_SUBTYPE:
+            err = f"subtype `{self.subtype} is legacy"
+            raise ValueError(err)
+        return self
 
 
 class MakeOneshotReservationIn(BaseMakeReservationIn):
@@ -238,6 +246,14 @@ class AddPriceIn(BaseModel):
             raise ValueError(err)
         return self
 
+    @model_validator(mode="after")
+    def check_legacy_subtype(self) -> Self:
+        """Check if `subtype` is legacy."""
+        if self.service_subtype in LEGACY_SERVICE_SUBTYPE:
+            err = f"subtype `{self.service_subtype} is legacy"
+            raise ValueError(err)
+        return self
+
 
 class AddPriceOut(AddPriceIn):
     """AddPriceOut."""
@@ -251,6 +267,14 @@ class BaseEstimateCostIn(BaseModel):
     proj_id: UUID
     type: ServiceType
     subtype: ServiceSubtype
+
+    @model_validator(mode="after")
+    def check_legacy_subtype(self) -> Self:
+        """Check if `subtype` is legacy."""
+        if self.subtype in LEGACY_SERVICE_SUBTYPE:
+            err = f"subtype `{self.subtype} is legacy"
+            raise ValueError(err)
+        return self
 
 
 class EstimateOneshotCostIn(BaseEstimateCostIn):
