@@ -1,5 +1,7 @@
 import pytest
 
+from app.constants import ServiceSubtype
+
 from tests.constants import PROJ_ID, VLAB_ID
 from tests.utils import DEFAULT_PRICE_TIER, assert_validation_error, make_price_data
 
@@ -92,4 +94,16 @@ async def test_post_price_with_first_tier_not_starting_at_zero(api_client):
         response,
         error_type="value_error",
         msg="First tier must start at min_quantity=0",
+    )
+
+
+async def test_post_price_with_legacy_subtype(api_client):
+    data = make_price_data(service_subtype=ServiceSubtype.ML_RETRIEVAL)
+    response = await api_client.post("/price", json=data)
+
+    assert response.status_code == 422
+    assert_validation_error(
+        response,
+        error_type="value_error",
+        msg="subtype `ml-retrieval` is legacy",
     )

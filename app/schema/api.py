@@ -115,7 +115,7 @@ class BaseMakeReservationIn(BaseModel):
     def check_legacy_subtype(self) -> Self:
         """Check if `subtype` is legacy."""
         if self.subtype in LEGACY_SERVICE_SUBTYPE:
-            err = f"subtype `{self.subtype} is legacy"
+            err = f"subtype `{self.subtype}` is legacy"
             raise ValueError(err)
         return self
 
@@ -294,7 +294,7 @@ class AddPriceIn(AddPriceBase):
     def check_legacy_subtype(self) -> Self:
         """Check if `subtype` is legacy."""
         if self.service_subtype in LEGACY_SERVICE_SUBTYPE:
-            err = f"subtype `{self.service_subtype} is legacy"
+            err = f"subtype `{self.service_subtype}` is legacy"
             raise ValueError(err)
         return self
 
@@ -337,7 +337,7 @@ class BaseEstimateCostIn(BaseModel):
     def check_legacy_subtype(self) -> Self:
         """Check if `subtype` is legacy."""
         if self.subtype in LEGACY_SERVICE_SUBTYPE:
-            err = f"subtype `{self.subtype} is legacy"
+            err = f"subtype `{self.subtype}` is legacy"
             raise ValueError(err)
         return self
 

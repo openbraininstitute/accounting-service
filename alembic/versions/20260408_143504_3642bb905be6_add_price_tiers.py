@@ -1,8 +1,8 @@
 """Add price_tier table, migrate data from price, remove price.fixed_cost
 
 Revision ID: 3642bb905be6
-Revises: 75dc053ee063
-Create Date: 2026-04-02 14:35:04.939626
+Revises: 590072d41213
+Create Date: 2026-04-08 14:35:04.939626
 
 """
 
@@ -14,7 +14,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "3642bb905be6"
-down_revision: str | None = "75dc053ee063"
+down_revision: str | None = "590072d41213"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
