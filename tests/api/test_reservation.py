@@ -138,7 +138,7 @@ async def test_make_longrun_reservation_with_job_name(api_client, mock_uuid):
 
 
 @pytest.mark.usefixtures("_db_account", "_db_price")
-async def test_error_on_deprecated_subtype(api_client):
+async def test_error_on_legacy_subtype(api_client):
     # make a valid reservation
     request_payload = {
         "proj_id": PROJ_ID,

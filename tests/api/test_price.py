@@ -84,7 +84,7 @@ async def test_post_price_with_invalid_costs(api_client):
     assert response.status_code == 422
 
 
-async def test_post_price_with_deprecated_subtype(api_client):
+async def test_post_price_with_legacy_subtype(api_client):
     data = {
         "service_type": ServiceType.ONESHOT,
         "service_subtype": ServiceSubtype.ML_RETRIEVAL,
@@ -266,8 +266,8 @@ async def test_estimate_oneshot_cost_zero_count(api_client):
 
 
 @pytest.mark.usefixtures("_db_account", "_db_price")
-async def test_estimate_fails_on_deprecated_subtype(api_client):
-    """Make sure one can't use deprecated subtypes."""
+async def test_estimate_fails_on_legacy_subtype(api_client):
+    """Make sure one can't use legacy subtypes."""
     request_payload = {
         "proj_id": PROJ_ID,
         "type": ServiceType.ONESHOT,
