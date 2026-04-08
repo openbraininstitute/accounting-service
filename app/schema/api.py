@@ -222,10 +222,24 @@ class MoveBudgetIn(BaseModel):
 class PriceTierIn(BaseModel):
     """PriceTierIn."""
 
-    min_quantity: Annotated[int, Field(ge=0)]
-    max_quantity: int | None = None
-    fixed_cost: Annotated[Decimal, Field(ge=D0)]
-    multiplier: Annotated[Decimal, Field(ge=D0)]
+    min_quantity: Annotated[
+        int,
+        Field(
+            ge=0,
+            description=(
+                "Start of the tier range (inclusive). Must be 0 for the first tier, "
+                "and equal to the previous tier's max_quantity for subsequent tiers."
+            ),
+        ),
+    ]
+    max_quantity: Annotated[
+        int | None,
+        Field(ge=0, description="Tier upper bound (exclusive), or null for the last tier"),
+    ] = None
+    fixed_cost: Annotated[
+        Decimal, Field(ge=D0, description="A flat cost added once when usage enters this tier.")
+    ]
+    multiplier: Annotated[Decimal, Field(ge=D0, description="The per-unit rate within this tier.")]
 
 
 class PriceTierOut(PriceTierIn):
@@ -247,7 +261,18 @@ class AddPriceBase(BaseModel):
 class AddPriceIn(AddPriceBase):
     """AddPriceIn."""
 
-    tiers: Annotated[list[PriceTierIn], Field(min_length=1)]
+    tiers: Annotated[
+        list[PriceTierIn],
+        Field(
+            min_length=1,
+            description=(
+                "Pricing tiers applied using a tiered model: "
+                "each tier prices only the portion of usage "
+                "within its [min_quantity, max_quantity) range. "
+                "In order for a tier to be applied, the usage should be > min_quantity."
+            ),
+        ),
+    ]
 
     @model_validator(mode="after")
     def check_validity_interval(self) -> Self:
