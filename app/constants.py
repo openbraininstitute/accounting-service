@@ -106,4 +106,4 @@ class ServiceSubtype(HyphenStrEnum):
     ML_RETRIEVAL = auto()
 
 
-DEPRECATED_SERVICE_SUBTYPE = {ServiceSubtype.ML_RAG, ServiceSubtype.ML_RETRIEVAL}
+LEGACY_SERVICE_SUBTYPE = {ServiceSubtype.ML_RAG, ServiceSubtype.ML_RETRIEVAL}
