@@ -115,7 +115,7 @@ class BaseMakeReservationIn(BaseModel):
     def check_legacy_subtype(self) -> Self:
         """Check if `subtype` is legacy."""
         if self.subtype in LEGACY_SERVICE_SUBTYPE:
-            err = f"subtype `{self.subtype} is legacy"
+            err = f"subtype `{self.subtype}` is legacy"
             raise ValueError(err)
         return self
 
@@ -227,16 +227,60 @@ class MoveBudgetIn(BaseModel):
     amount: Annotated[Decimal, Field(gt=D0)]
 
 
-class AddPriceIn(BaseModel):
-    """AddPriceIn."""
+class PriceTierIn(BaseModel):
+    """PriceTierIn."""
+
+    min_quantity: Annotated[
+        int,
+        Field(
+            ge=0,
+            description=(
+                "Start of the tier range (inclusive). Must be 0 for the first tier, "
+                "and equal to the previous tier's max_quantity for subsequent tiers."
+            ),
+        ),
+    ]
+    max_quantity: Annotated[
+        int | None,
+        Field(ge=0, description="Tier upper bound (exclusive), or null for the last tier"),
+    ] = None
+    fixed_cost: Annotated[
+        Decimal, Field(ge=D0, description="A flat cost added once when usage enters this tier.")
+    ]
+    multiplier: Annotated[Decimal, Field(ge=D0, description="The per-unit rate within this tier.")]
+
+
+class PriceTierOut(PriceTierIn):
+    """PriceTierOut."""
+
+    id: int
+
+
+class AddPriceBase(BaseModel):
+    """AddPriceBase."""
 
     service_type: ServiceType
     service_subtype: ServiceSubtype
     valid_from: AwareDatetime
     valid_to: AwareDatetime | None
-    fixed_cost: Annotated[Decimal, Field(ge=D0)]
-    multiplier: Annotated[Decimal, Field(ge=D0)]
     vlab_id: UUID | None
+
+
+class AddPriceIn(AddPriceBase):
+    """AddPriceIn."""
+
+    tiers: Annotated[
+        list[PriceTierIn],
+        Field(
+            min_length=1,
+            description=(
+                "Pricing tiers applied using a tiered model: "
+                "each tier prices only the portion of usage "
+                "within its [min_quantity, max_quantity) range. "
+                "In order for a tier to be applied, the usage should be > min_quantity."
+            ),
+        ),
+    ]
 
     @model_validator(mode="after")
     def check_validity_interval(self) -> Self:
@@ -250,15 +294,36 @@ class AddPriceIn(BaseModel):
     def check_legacy_subtype(self) -> Self:
         """Check if `subtype` is legacy."""
         if self.service_subtype in LEGACY_SERVICE_SUBTYPE:
-            err = f"subtype `{self.service_subtype} is legacy"
+            err = f"subtype `{self.service_subtype}` is legacy"
             raise ValueError(err)
         return self
 
+    @model_validator(mode="after")
+    def check_tiers(self) -> Self:
+        """Check that tiers are contiguous and cover the full range."""
+        sorted_tiers = sorted(self.tiers, key=lambda t: t.min_quantity)
+        if sorted_tiers[0].min_quantity != 0:
+            err = "First tier must start at min_quantity=0"
+            raise ValueError(err)
+        for i in range(1, len(sorted_tiers)):
+            prev_max = sorted_tiers[i - 1].max_quantity
+            if prev_max is None:
+                err = "Only the last tier can have max_quantity=None"
+                raise ValueError(err)
+            if sorted_tiers[i].min_quantity != prev_max:
+                err = (
+                    "Tiers must be contiguous: each min_quantity "
+                    "must equal the previous max_quantity"
+                )
+                raise ValueError(err)
+        return self
 
-class AddPriceOut(AddPriceIn):
+
+class AddPriceOut(AddPriceBase):
     """AddPriceOut."""
 
     id: int
+    tiers: list[PriceTierOut]
 
 
 class BaseEstimateCostIn(BaseModel):
@@ -272,7 +337,7 @@ class BaseEstimateCostIn(BaseModel):
     def check_legacy_subtype(self) -> Self:
         """Check if `subtype` is legacy."""
         if self.subtype in LEGACY_SERVICE_SUBTYPE:
-            err = f"subtype `{self.subtype} is legacy"
+            err = f"subtype `{self.subtype}` is legacy"
             raise ValueError(err)
         return self
 

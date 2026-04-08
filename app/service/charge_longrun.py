@@ -11,7 +11,7 @@ from app.logger import L
 from app.repository.group import RepositoryGroup
 from app.schema.domain import ChargeLongrunResult, StartedJob
 from app.service.price import calculate_cost
-from app.service.usage import calculate_longrun_usage_value
+from app.service.usage import calculate_longrun_cumulative_usage
 from app.utils import utcnow
 
 
@@ -22,7 +22,6 @@ class ChargeParams:
     charge_start: datetime
     charge_end: datetime
     transaction_datetime: datetime
-    include_fixed_cost: bool
     release_reservation: bool
     reason: str
     min_charging_interval: float = 0.0
@@ -52,16 +51,23 @@ async def _charge_generic(
     )
     discount = await repos.discount.get_current_vlab_discount(accounts.vlab.id)
     discount_id = None if not discount else discount.id
-    usage_value = calculate_longrun_usage_value(
+    previous_usage = calculate_longrun_cumulative_usage(
         instances=job.usage_params["instances"],
         instance_type=job.usage_params.get("instance_type"),
-        duration=total_seconds,
+        charged_from=job.started_at,
+        charged_until=params.charge_start,
+    )
+    current_usage = calculate_longrun_cumulative_usage(
+        instances=job.usage_params["instances"],
+        instance_type=job.usage_params.get("instance_type"),
+        charged_from=job.started_at,
+        charged_until=params.charge_end,
     )
     total_amount = calculate_cost(
         price=price,
         discount=discount,
-        usage_value=usage_value,
-        include_fixed_cost=params.include_fixed_cost,
+        previous_usage=previous_usage,
+        current_usage=current_usage,
     )
     if abs(total_amount) < params.min_charging_amount:
         L.debug(
@@ -166,7 +172,6 @@ def _resolve_charge_params(  # noqa: PLR0911
                 charge_start=job.started_at,
                 charge_end=now,
                 transaction_datetime=now,
-                include_fixed_cost=True,
                 release_reservation=True,
                 reason="expired_uncharged",
                 expired=True,
@@ -181,18 +186,16 @@ def _resolve_charge_params(  # noqa: PLR0911
                 charge_start=last_charged_at,
                 charge_end=now,
                 transaction_datetime=now,
-                include_fixed_cost=False,
                 release_reservation=True,
                 reason="expired_charged",
                 expired=True,
             )
         case StartedJob(last_charged_at=None, finished_at=None):
-            # Charge fixed cost and first running time, set charge_end=now
+            # Charge first running time, set charge_end=now
             return ChargeParams(
                 charge_start=job.started_at,
                 charge_end=now,
                 transaction_datetime=now,
-                include_fixed_cost=True,
                 release_reservation=False,
                 reason="unfinished_uncharged",
                 min_charging_interval=min_charging_interval,
@@ -204,20 +207,17 @@ def _resolve_charge_params(  # noqa: PLR0911
                 charge_start=last_charged_at,
                 charge_end=now,
                 transaction_datetime=now,
-                include_fixed_cost=False,
                 release_reservation=False,
                 reason="unfinished_charged",
                 min_charging_interval=min_charging_interval,
                 min_charging_amount=min_charging_amount,
             )
         case StartedJob(last_charged_at=None, finished_at=datetime() as finished_at):
-            # Charge fixed costs and full running time, set charge_end=finished_at,
-            # release reservation
+            # Charge full running time, set charge_end=finished_at, and release reservation
             return ChargeParams(
                 charge_start=job.started_at,
                 charge_end=finished_at,
                 transaction_datetime=now,
-                include_fixed_cost=True,
                 release_reservation=True,
                 reason="finished_uncharged",
             )
@@ -229,7 +229,6 @@ def _resolve_charge_params(  # noqa: PLR0911
                 charge_start=last_charged_at,
                 charge_end=finished_at,
                 transaction_datetime=now,
-                include_fixed_cost=False,
                 release_reservation=True,
                 reason="finished_charged",
             )
@@ -246,7 +245,6 @@ def _resolve_charge_params(  # noqa: PLR0911
                 charge_start=last_charged_at,
                 charge_end=finished_at,
                 transaction_datetime=now,
-                include_fixed_cost=False,
                 release_reservation=True,
                 reason="finished_overcharged",
             )

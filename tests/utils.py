@@ -6,6 +6,36 @@ from app.db.model import Base, Job, Journal, Ledger
 
 from tests.constants import PROJ_ID, VLAB_ID
 
+DEFAULT_PRICE_TIER = {
+    "min_quantity": 0,
+    "max_quantity": None,
+    "fixed_cost": "0",
+    "multiplier": "0.00001",
+}
+
+
+def make_price_data(**overrides):
+    """Return a default valid price API payload, with optional overrides."""
+    return {
+        "service_type": ServiceType.ONESHOT,
+        "service_subtype": ServiceSubtype.ML_LLM,
+        "valid_from": "2024-01-01T00:00:00Z",
+        "valid_to": None,
+        "vlab_id": None,
+        "tiers": [DEFAULT_PRICE_TIER],
+    } | overrides
+
+
+def assert_validation_error(response, *, error_type, msg=None, loc=None):
+    """Assert that the response is a 422 validation error with the expected details."""
+    assert response.status_code == 422
+    detail = response.json()["details"][0]
+    assert detail["type"] == error_type
+    if msg is not None:
+        assert msg in detail["msg"]
+    if loc is not None:
+        assert detail["loc"] == loc
+
 
 async def truncate_tables(session):
     query = text(f"""TRUNCATE {",".join(Base.metadata.tables)} RESTART IDENTITY CASCADE""")

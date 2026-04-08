@@ -1,7 +1,7 @@
 import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 from unittest.mock import patch
 from uuid import UUID
@@ -10,7 +10,6 @@ import pytest
 import sqlalchemy as sa
 from aiobotocore.client import AioBaseClient
 from aiobotocore.session import AioSession, get_session
-from asyncpg.pgproto.pgproto import timedelta
 from botocore.stub import Stubber
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,7 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app import application
 from app.config import settings
 from app.constants import D0, ServiceSubtype, ServiceType, TransactionType
-from app.db.model import Account, Job, Journal, Ledger, Price
+from app.db.model import Account, Job, Journal, Ledger, Price, PriceTier
 from app.db.session import database_session_manager
 from app.utils import utcnow
 
@@ -29,6 +28,7 @@ from tests.constants import (
     PROJ_ID_2,
     RSV_ID,
     RSV_ID_2,
+    STORAGE_MULTIPLIER,
     SYS_ID,
     USER_ID,
     UUIDS,
@@ -182,8 +182,6 @@ async def _db_price(db):
                 "service_subtype": ServiceSubtype.ML_LLM,
                 "valid_from": valid_from,
                 "valid_to": None,
-                "fixed_cost": D0,
-                "multiplier": Decimal("0.00001"),
                 "vlab_id": None,
             },
             {
@@ -192,8 +190,6 @@ async def _db_price(db):
                 "service_subtype": ServiceSubtype.SINGLE_CELL_SIM,
                 "valid_from": valid_from,
                 "valid_to": None,
-                "fixed_cost": Decimal("1.5"),
-                "multiplier": Decimal("0.01"),
                 "vlab_id": None,
             },
             {
@@ -202,9 +198,33 @@ async def _db_price(db):
                 "service_subtype": ServiceSubtype.STORAGE,
                 "valid_from": valid_from,
                 "valid_to": None,
-                "fixed_cost": D0,
-                "multiplier": Decimal("0.001"),
                 "vlab_id": None,
+            },
+        ],
+    )
+    await db.execute(
+        sa.insert(PriceTier),
+        [
+            {
+                "price_id": 1,
+                "min_quantity": 0,
+                "max_quantity": None,
+                "fixed_cost": D0,
+                "multiplier": Decimal("0.00001"),
+            },
+            {
+                "price_id": 2,
+                "min_quantity": 0,
+                "max_quantity": None,
+                "fixed_cost": Decimal("1.5"),
+                "multiplier": Decimal("0.01"),
+            },
+            {
+                "price_id": 3,
+                "min_quantity": 0,
+                "max_quantity": None,
+                "fixed_cost": D0,
+                "multiplier": STORAGE_MULTIPLIER,
             },
         ],
     )

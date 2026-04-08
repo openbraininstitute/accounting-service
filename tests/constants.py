@@ -1,6 +1,7 @@
 """Constants used for tests."""
 
 import dataclasses
+from decimal import Context, Decimal
 from uuid import UUID
 
 
@@ -61,3 +62,7 @@ GROUP_ID_2 = str(UUIDS.GROUP[1])
 KB = 1024
 MB = 1024**2
 GB = 1024**3
+
+# $0.023 per GB/month (S3-like pricing)
+BYTE_SECONDS_PER_GB_MONTH = Decimal(1024**3) * Decimal(30 * 86400)
+STORAGE_MULTIPLIER = Context(prec=10).create_decimal(Decimal("0.023") / BYTE_SECONDS_PER_GB_MONTH)

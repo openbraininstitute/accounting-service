@@ -89,9 +89,15 @@ def _create_prices(client, url):
             "service_subtype": "ml-llm",
             "valid_from": "2024-08-14T00:00:00Z",
             "valid_to": None,
-            "fixed_cost": "0",
-            "multiplier": "0.00001",
             "vlab_id": None,
+            "tiers": [
+                {
+                    "min_quantity": 0,
+                    "max_quantity": None,
+                    "fixed_cost": "0",
+                    "multiplier": "0.00001",
+                },
+            ],
         },
     )
 

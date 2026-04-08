@@ -9,7 +9,7 @@ import sqlalchemy as sa
 from sqlalchemy import null, or_
 
 from app.constants import ServiceSubtype, ServiceType
-from app.db.model import Price
+from app.db.model import Price, PriceTier
 from app.errors import ApiError, ApiErrorCode
 from app.repository.base import BaseRepository
 
@@ -76,5 +76,14 @@ class PriceRepository(BaseRepository):
         """Add a price for the specified vlab, or as the default price if vlab is None.
 
         Any other pre-existing price for the same service and vlab isn't invalidated.
+
+        Note: data is modified in-place.
         """
-        return (await self.db.execute(sa.insert(Price).values(data).returning(Price))).scalar_one()
+        tiers_data = data.pop("tiers")
+        price = (await self.db.execute(sa.insert(Price).values(data).returning(Price))).scalar_one()
+        for tier in tiers_data:
+            await self.db.execute(sa.insert(PriceTier).values(price_id=price.id, **tier))
+        await self.db.flush()
+        # Refresh to load the tiers relationship
+        await self.db.refresh(price, attribute_names=["tiers"])
+        return price

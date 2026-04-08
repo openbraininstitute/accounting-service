@@ -33,8 +33,8 @@ async def _charge_generic(
     total_amount = calculate_cost(
         price=price,
         discount=discount,
-        usage_value=usage_value,
-        include_fixed_cost=True,
+        previous_usage=0,
+        current_usage=usage_value,
     )
     if total_amount < 0:
         err = f"Total amount for job {job.id} is negative: {total_amount}"
