@@ -4,6 +4,8 @@
 
 Prices are defined using a tiered model. Each price has one or more tiers that determine the cost based on usage. A linear price is simply a price with a single tier.
 
+Tiered pricing is supported for **oneshot** and **longrun** jobs. **Storage** jobs use a single tier only, because each storage message creates a new short-lived job whose per-job cumulative usage never reaches tier boundaries. For storage, define a single tier with `fixed_cost=0` and the multiplier in USD/GB/month.
+
 The total cost for a charge is the sum of the costs across all tiers that the charged usage spans. For each tier traversed:
 
 - The tier's `fixed_cost` is added once, only when usage enters that tier for the first time.

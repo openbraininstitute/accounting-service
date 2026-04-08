@@ -1,7 +1,7 @@
+from datetime import timedelta
 from decimal import Decimal
 
 import pytest
-from asyncpg.pgproto.pgproto import timedelta
 
 from app.constants import TransactionType
 from app.schema.domain import ChargeLongrunResult

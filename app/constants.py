@@ -9,6 +9,11 @@ D0 = Decimal(0)
 D1 = Decimal(1)
 DECIMAL_PLACES = 2
 
+# Conversion factor: byte-seconds per GB-month (30 days).
+# The storage price multiplier is stored as USD/GB/month, so raw usage in byte-seconds
+# is divided by this factor before multiplying by the price.
+BYTE_SECONDS_PER_GB_MONTH = Decimal(1024**3) * Decimal(30 * 86400)
+
 
 class EventStatus(HyphenStrEnum):
     """Queue Message Status."""

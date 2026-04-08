@@ -28,6 +28,7 @@ from tests.constants import (
     PROJ_ID_2,
     RSV_ID,
     RSV_ID_2,
+    STORAGE_MULTIPLIER,
     SYS_ID,
     USER_ID,
     UUIDS,
@@ -223,7 +224,7 @@ async def _db_price(db):
                 "min_quantity": 0,
                 "max_quantity": None,
                 "fixed_cost": D0,
-                "multiplier": Decimal("0.001"),
+                "multiplier": STORAGE_MULTIPLIER,
             },
         ],
     )

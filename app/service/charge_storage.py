@@ -5,26 +5,12 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any
 
-from app.constants import D0, TransactionType
+from app.constants import BYTE_SECONDS_PER_GB_MONTH, D0, TransactionType
 from app.db.session import SessionFactory
 from app.logger import L
 from app.repository.group import RepositoryGroup
 from app.schema.domain import ChargeStorageResult, StartedJob
-from app.service.price import calculate_cost
-from app.service.usage import calculate_storage_cumulative_usage
 from app.utils import utcnow
-
-
-def _get_price_per_gb_per_day() -> Decimal:
-    # TODO: to be retrieved from db
-    return round(Decimal("0.023") / 30, ndigits=10)
-
-
-def _get_amount(total_seconds: float, total_bytes: float) -> Decimal:
-    return round(
-        Decimal(total_seconds / 24 / 3600 * total_bytes / 1024**3) * _get_price_per_gb_per_day(),
-        ndigits=10,
-    )
 
 
 async def _charge_one(
@@ -54,22 +40,12 @@ async def _charge_one(
     )
     discount = await repos.discount.get_current_vlab_discount(accounts.vlab.id)
     discount_id = None if not discount else discount.id
-    previous_usage = calculate_storage_cumulative_usage(
-        size=job.usage_params["size"],
-        charged_from=job.started_at,
-        charged_until=charging_start,
-    )
-    current_usage = calculate_storage_cumulative_usage(
-        size=job.usage_params["size"],
-        charged_from=job.started_at,
-        charged_until=charging_at,
-    )
-    total_amount = calculate_cost(
-        price=price,
-        discount=discount,
-        previous_usage=previous_usage,
-        current_usage=current_usage,
-    )
+    # Storage uses a single tier with fixed_cost=0 (see tiered-pricing.md)
+    multiplier = price.tiers[0].multiplier
+    usage_byte_seconds = Decimal(job.usage_params["size"]) * total_seconds
+    total_amount = multiplier * usage_byte_seconds / BYTE_SECONDS_PER_GB_MONTH
+    if discount:
+        total_amount *= Decimal(1) - discount.discount
     if not job.finished_at and abs(total_amount) < min_charging_amount:
         L.debug(
             "Not charging job {}: calculated amount too low: {:.6f}",

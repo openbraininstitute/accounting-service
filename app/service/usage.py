@@ -48,26 +48,6 @@ def calculate_oneshot_usage_value(count: int) -> int:
     return int(count)
 
 
-def calculate_storage_usage_value(size: int, duration: float) -> int:
-    """Return the usage_value.
-
-    Args:
-        size: number of bytes.
-        duration: duration in seconds.
-    """
-    return int(size * duration)
-
-
-def calculate_storage_cumulative_usage(
-    size: int,
-    charged_from: datetime,
-    charged_until: datetime,
-) -> int:
-    """Return the cumulative usage for storage jobs from charged_from to charged_until."""
-    duration = int((charged_until - charged_from).total_seconds())
-    return calculate_storage_usage_value(size=size, duration=duration)
-
-
 async def add_oneshot_usage(event: OneshotEvent, sqs_manager: SQSManager) -> None:
     """Add a oneshot event to the queue."""
     msg_body = event.model_dump_json()

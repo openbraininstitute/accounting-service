@@ -1,6 +1,7 @@
 """Constants used for tests."""
 
 import dataclasses
+from decimal import Decimal
 from uuid import UUID
 
 
@@ -61,3 +62,6 @@ GROUP_ID_2 = str(UUIDS.GROUP[1])
 KB = 1024
 MB = 1024**2
 GB = 1024**3
+
+# $0.023 per GB/month (S3-like pricing)
+STORAGE_MULTIPLIER = Decimal("0.023")

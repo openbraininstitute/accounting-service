@@ -1,15 +1,19 @@
+from datetime import timedelta
 from decimal import Decimal
 
 import pytest
-from asyncpg.pgproto.pgproto import timedelta
 
-from app.constants import TransactionType
+from app.constants import BYTE_SECONDS_PER_GB_MONTH, TransactionType
 from app.schema.domain import ChargeStorageResult
 from app.service import charge_storage as test_module
 from app.utils import create_uuid, utcnow
 
-from tests.constants import GB, UUIDS
+from tests.constants import GB, STORAGE_MULTIPLIER, UUIDS
 from tests.utils import _insert_storage_job, _select_job, _select_ledger_rows, _update_job
+
+
+def _expected_storage_cost(size: int, duration_seconds: int) -> Decimal:
+    return STORAGE_MULTIPLIER * Decimal(size) * duration_seconds / BYTE_SECONDS_PER_GB_MONTH
 
 
 @pytest.mark.usefixtures("_db_account", "_db_price")
@@ -36,7 +40,7 @@ async def test_charge_storage(db, session_factory):
     assert job.last_charged_at == transaction_datetime
     rows = await _select_ledger_rows(db, job_id)
     assert len(rows) == 2
-    expected_amount = 1 * GB * Decimal("0.001") * 3600
+    expected_amount = _expected_storage_cost(1 * GB, 3600)
     assert [dict(row._mapping) for row in rows] == [
         {
             "account_id": UUIDS.PROJ[0],
@@ -69,7 +73,7 @@ async def test_charge_storage(db, session_factory):
     assert job.last_charged_at == transaction_datetime
     rows = await _select_ledger_rows(db, job_id)
     assert len(rows) == 4
-    expected_amount = 1 * GB * Decimal("0.001") * 1800
+    expected_amount = _expected_storage_cost(1 * GB, 1800)
     assert [dict(row._mapping) for row in rows[-2:]] == [
         {
             "account_id": UUIDS.PROJ[0],
@@ -105,7 +109,7 @@ async def test_charge_storage(db, session_factory):
     assert job.last_charged_at == finished_at
     rows = await _select_ledger_rows(db, job_id)
     assert len(rows) == 6
-    expected_amount = 1 * GB * Decimal("0.001") * 600
+    expected_amount = _expected_storage_cost(1 * GB, 600)
     assert [dict(row._mapping) for row in rows[-2:]] == [
         {
             "account_id": UUIDS.PROJ[0],
@@ -143,7 +147,7 @@ async def test_charge_storage(db, session_factory):
     assert job.last_charged_at == transaction_datetime
     rows = await _select_ledger_rows(db, job_id)
     assert len(rows) == 2
-    expected_amount = int(1.5 * GB) * Decimal("0.001") * 600
+    expected_amount = _expected_storage_cost(int(1.5 * GB), 600)
     assert [dict(row._mapping) for row in rows] == [
         {
             "account_id": UUIDS.PROJ[0],
