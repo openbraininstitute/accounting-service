@@ -3,7 +3,7 @@ from decimal import Decimal
 
 import pytest
 
-from app.constants import BYTE_SECONDS_PER_GB_MONTH, TransactionType
+from app.constants import TransactionType
 from app.schema.domain import ChargeStorageResult
 from app.service import charge_storage as test_module
 from app.utils import create_uuid, utcnow
@@ -13,7 +13,7 @@ from tests.utils import _insert_storage_job, _select_job, _select_ledger_rows, _
 
 
 def _expected_storage_cost(size: int, duration_seconds: int) -> Decimal:
-    return STORAGE_MULTIPLIER * Decimal(size) * duration_seconds / BYTE_SECONDS_PER_GB_MONTH
+    return STORAGE_MULTIPLIER * Decimal(size) * duration_seconds
 
 
 @pytest.mark.usefixtures("_db_account", "_db_price")

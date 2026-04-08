@@ -5,7 +5,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any
 
-from app.constants import BYTE_SECONDS_PER_GB_MONTH, D0, TransactionType
+from app.constants import D0, TransactionType
 from app.db.session import SessionFactory
 from app.logger import L
 from app.repository.group import RepositoryGroup
@@ -43,7 +43,7 @@ async def _charge_one(
     # Storage uses a single tier with fixed_cost=0 (see tiered-pricing.md)
     multiplier = price.tiers[0].multiplier
     usage_byte_seconds = Decimal(job.usage_params["size"]) * total_seconds
-    total_amount = multiplier * usage_byte_seconds / BYTE_SECONDS_PER_GB_MONTH
+    total_amount = multiplier * usage_byte_seconds
     if discount:
         total_amount *= Decimal(1) - discount.discount
     if not job.finished_at and abs(total_amount) < min_charging_amount:
