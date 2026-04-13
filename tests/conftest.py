@@ -171,61 +171,67 @@ async def _db_account(db):
 
 @pytest.fixture
 async def _db_price(db):
-    """Populate the price table."""
+    """Populate the price table and return a dict of {ServiceSubtype: price_id}."""
     valid_from = datetime.fromisoformat("2024-01-01T00:00:00Z")
-    await db.execute(
-        sa.insert(Price),
-        [
-            {
-                "service_type": ServiceType.ONESHOT,
-                "service_subtype": ServiceSubtype.ML_LLM,
-                "valid_from": valid_from,
-                "valid_to": None,
-                "vlab_id": None,
-            },
-            {
-                "service_type": ServiceType.LONGRUN,
-                "service_subtype": ServiceSubtype.SINGLE_CELL_SIM,
-                "valid_from": valid_from,
-                "valid_to": None,
-                "vlab_id": None,
-            },
-            {
-                "service_type": ServiceType.STORAGE,
-                "service_subtype": ServiceSubtype.STORAGE,
-                "valid_from": valid_from,
-                "valid_to": None,
-                "vlab_id": None,
-            },
-        ],
-    )
-    await db.execute(
-        sa.insert(PriceTier),
-        [
-            {
-                "price_id": 1,
-                "min_quantity": 0,
-                "max_quantity": None,
-                "fixed_cost": D0,
-                "multiplier": Decimal("0.00001"),
-            },
-            {
-                "price_id": 2,
-                "min_quantity": 0,
-                "max_quantity": None,
-                "fixed_cost": Decimal("1.5"),
-                "multiplier": Decimal("0.01"),
-            },
-            {
-                "price_id": 3,
-                "min_quantity": 0,
-                "max_quantity": None,
-                "fixed_cost": D0,
-                "multiplier": STORAGE_MULTIPLIER,
-            },
-        ],
-    )
+    rows = [
+        {
+            "service_type": ServiceType.ONESHOT,
+            "service_subtype": ServiceSubtype.ML_LLM,
+            "tiers": [
+                {
+                    "min_quantity": 0,
+                    "max_quantity": None,
+                    "fixed_cost": D0,
+                    "multiplier": Decimal("0.00001"),
+                },
+            ],
+        },
+        {
+            "service_type": ServiceType.LONGRUN,
+            "service_subtype": ServiceSubtype.SINGLE_CELL_SIM,
+            "tiers": [
+                {
+                    "min_quantity": 0,
+                    "max_quantity": None,
+                    "fixed_cost": Decimal("1.5"),
+                    "multiplier": Decimal("0.01"),
+                },
+            ],
+        },
+        {
+            "service_type": ServiceType.STORAGE,
+            "service_subtype": ServiceSubtype.STORAGE,
+            "tiers": [
+                {
+                    "min_quantity": 0,
+                    "max_quantity": None,
+                    "fixed_cost": D0,
+                    "multiplier": STORAGE_MULTIPLIER,
+                },
+            ],
+        },
+    ]
+    prices = {}
+    for row in rows:
+        result = await db.execute(
+            sa.insert(Price)
+            .values(
+                service_type=row["service_type"],
+                service_subtype=row["service_subtype"],
+                valid_from=valid_from,
+                valid_to=None,
+                vlab_id=None,
+            )
+            .returning(Price.id)
+        )
+        price_id = result.scalar_one()
+        prices[row["service_subtype"]] = price_id
+        await db.execute(
+            sa.insert(PriceTier),
+            [{"price_id": price_id, **tier} for tier in row["tiers"]],
+        )
     await db.commit()
+    return prices
 
 
 @pytest.fixture
@@ -292,61 +298,66 @@ async def _db_job(db, _db_account):
 @pytest.fixture
 async def _db_ledger(db, _db_account, _db_price, _db_job):
     """Populate the journal and ledger table."""
+    oneshot_price_id = _db_price[ServiceSubtype.ML_LLM]
     dt = utcnow() - timedelta(minutes=1)
-    await db.execute(
-        sa.insert(Journal),
-        [
-            {
-                "transaction_datetime": dt,
-                "transaction_type": TransactionType.RESERVE,
-                "job_id": UUIDS.JOB[0],
-                "price_id": 1,  # oneshot.ml-llm
-            },
-            {
-                "transaction_datetime": dt,
-                "transaction_type": TransactionType.CHARGE_ONESHOT,
-                "job_id": UUIDS.JOB[0],
-                "price_id": 1,  # oneshot.ml-llm
-            },
-            {
-                "transaction_datetime": dt,
-                "transaction_type": TransactionType.CHARGE_ONESHOT,
-                "job_id": UUIDS.JOB[0],
-                "price_id": 1,  # oneshot.ml-llm
-            },
-        ],
+    result = await db.execute(
+        sa.insert(Journal)
+        .values(
+            [
+                {
+                    "transaction_datetime": dt,
+                    "transaction_type": TransactionType.RESERVE,
+                    "job_id": UUIDS.JOB[0],
+                    "price_id": oneshot_price_id,
+                },
+                {
+                    "transaction_datetime": dt,
+                    "transaction_type": TransactionType.CHARGE_ONESHOT,
+                    "job_id": UUIDS.JOB[0],
+                    "price_id": oneshot_price_id,
+                },
+                {
+                    "transaction_datetime": dt,
+                    "transaction_type": TransactionType.CHARGE_ONESHOT,
+                    "job_id": UUIDS.JOB[0],
+                    "price_id": oneshot_price_id,
+                },
+            ]
+        )
+        .returning(Journal.id)
     )
+    j1, j2, j3 = [row[0] for row in result.all()]
     await db.execute(
         sa.insert(Ledger),
         [
             {
                 "account_id": UUIDS.PROJ[0],
-                "journal_id": 1,
+                "journal_id": j1,
                 "amount": -1000 * Decimal("0.00001"),
             },
             {
                 "account_id": UUIDS.RSV[0],
-                "journal_id": 1,
+                "journal_id": j1,
                 "amount": 1000 * Decimal("0.00001"),
             },
             {
                 "account_id": UUIDS.RSV[0],
-                "journal_id": 2,
+                "journal_id": j2,
                 "amount": -1000 * Decimal("0.00001"),
             },
             {
                 "account_id": UUIDS.SYS,
-                "journal_id": 2,
+                "journal_id": j2,
                 "amount": 1000 * Decimal("0.00001"),
             },
             {
                 "account_id": UUIDS.PROJ[0],
-                "journal_id": 3,
+                "journal_id": j3,
                 "amount": -500 * Decimal("0.00001"),
             },
             {
                 "account_id": UUIDS.SYS,
-                "journal_id": 3,
+                "journal_id": j3,
                 "amount": 500 * Decimal("0.00001"),
             },
         ],
