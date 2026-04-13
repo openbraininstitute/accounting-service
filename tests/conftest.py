@@ -177,7 +177,6 @@ async def _db_price(db):
         sa.insert(Price),
         [
             {
-                "id": 1,
                 "service_type": ServiceType.ONESHOT,
                 "service_subtype": ServiceSubtype.ML_LLM,
                 "valid_from": valid_from,
@@ -185,7 +184,6 @@ async def _db_price(db):
                 "vlab_id": None,
             },
             {
-                "id": 2,
                 "service_type": ServiceType.LONGRUN,
                 "service_subtype": ServiceSubtype.SINGLE_CELL_SIM,
                 "valid_from": valid_from,
@@ -193,7 +191,6 @@ async def _db_price(db):
                 "vlab_id": None,
             },
             {
-                "id": 3,
                 "service_type": ServiceType.STORAGE,
                 "service_subtype": ServiceSubtype.STORAGE,
                 "valid_from": valid_from,
@@ -300,21 +297,18 @@ async def _db_ledger(db, _db_account, _db_price, _db_job):
         sa.insert(Journal),
         [
             {
-                "id": 1,
                 "transaction_datetime": dt,
                 "transaction_type": TransactionType.RESERVE,
                 "job_id": UUIDS.JOB[0],
                 "price_id": 1,  # oneshot.ml-llm
             },
             {
-                "id": 2,
                 "transaction_datetime": dt,
                 "transaction_type": TransactionType.CHARGE_ONESHOT,
                 "job_id": UUIDS.JOB[0],
                 "price_id": 1,  # oneshot.ml-llm
             },
             {
-                "id": 3,
                 "transaction_datetime": dt,
                 "transaction_type": TransactionType.CHARGE_ONESHOT,
                 "job_id": UUIDS.JOB[0],
