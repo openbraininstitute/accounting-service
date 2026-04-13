@@ -45,7 +45,7 @@ class Event(Base):
 
     __tablename__ = "event"
 
-    id: Mapped[BIGINT] = mapped_column(Identity(), primary_key=True)
+    id: Mapped[BIGINT] = mapped_column(Identity(always=True), primary_key=True)
     message_id: Mapped[UUID] = mapped_column(index=True, unique=True)
     queue_name: Mapped[str]
     status: Mapped[EventStatus]
@@ -103,7 +103,7 @@ class Journal(Base):
 
     __tablename__ = "journal"
 
-    id: Mapped[BIGINT] = mapped_column(Identity(), primary_key=True)
+    id: Mapped[BIGINT] = mapped_column(Identity(always=True), primary_key=True)
     transaction_datetime: Mapped[datetime]
     transaction_type: Mapped[TransactionType]
     job_id: Mapped[UUID | None] = mapped_column(ForeignKey("job.id"), index=True)
@@ -118,7 +118,7 @@ class Ledger(Base):
 
     __tablename__ = "ledger"
 
-    id: Mapped[BIGINT] = mapped_column(Identity(), primary_key=True)
+    id: Mapped[BIGINT] = mapped_column(Identity(always=True), primary_key=True)
     account_id: Mapped[UUID] = mapped_column(ForeignKey("account.id"), index=True)
     journal_id: Mapped[BIGINT] = mapped_column(ForeignKey("journal.id"), index=True)
     amount: Mapped[Decimal]
@@ -130,7 +130,7 @@ class Price(Base):
 
     __tablename__ = "price"
 
-    id: Mapped[BIGINT] = mapped_column(Identity(), primary_key=True)
+    id: Mapped[BIGINT] = mapped_column(Identity(always=True), primary_key=True)
     service_type: Mapped[ServiceType]
     service_subtype: Mapped[ServiceSubtype] = mapped_column(index=True)
     valid_from: Mapped[datetime]
@@ -149,7 +149,7 @@ class PriceTier(Base):
 
     __tablename__ = "price_tier"
 
-    id: Mapped[BIGINT] = mapped_column(Identity(), primary_key=True)
+    id: Mapped[BIGINT] = mapped_column(Identity(always=True), primary_key=True)
     price_id: Mapped[BIGINT] = mapped_column(ForeignKey("price.id"), index=True)
     min_quantity: Mapped[int]
     max_quantity: Mapped[int | None]
@@ -162,7 +162,7 @@ class Discount(Base):
 
     __tablename__ = "discount"
 
-    id: Mapped[BIGINT] = mapped_column(Identity(), primary_key=True)
+    id: Mapped[BIGINT] = mapped_column(Identity(always=True), primary_key=True)
     vlab_id: Mapped[UUID | None] = mapped_column(ForeignKey("account.id"), index=True)
     valid_from: Mapped[datetime] = mapped_column(default=func.now())
     valid_to: Mapped[datetime | None]
