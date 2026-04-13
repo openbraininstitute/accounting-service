@@ -100,6 +100,8 @@ class ServiceSubtype(HyphenStrEnum):
     SYSTEM_SIM = auto()
     WHOLE_BRAIN_SIM = auto()
     # } end of `CircuitScale`
+    # `obi-one` via `launch-system`: Circuit Extraction
+    CIRCUIT_EXTRACTION = auto()
 
     # These are deprecated and should not be used any more
     ML_RAG = auto()
