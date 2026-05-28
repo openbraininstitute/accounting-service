@@ -3,8 +3,11 @@
 from datetime import datetime
 
 from app.config import settings
+from app.constants import ServiceSubtype
 from app.logger import L
 from app.queue.session import SQSManager
+from app.repository.group import RepositoryGroup
+from app.schema.api import LongrunOpenJobOut, PaginatedParams
 from app.schema.queue import LongrunEvent, OneshotEvent, StorageEvent
 
 
@@ -46,6 +49,17 @@ def calculate_oneshot_usage_value(count: int) -> int:
         count: number representing the usage.
     """
     return int(count)
+
+
+async def get_open_longrun_jobs(
+    repos: RepositoryGroup,
+    *,
+    subtype: ServiceSubtype | None = None,
+    pagination: PaginatedParams,
+) -> tuple[list[LongrunOpenJobOut], int]:
+    """Return a paginated list of open longrun jobs."""
+    jobs, total = await repos.job.get_open_longrun_jobs(pagination, subtype=subtype)
+    return [LongrunOpenJobOut.model_validate(job) for job in jobs], total
 
 
 async def add_oneshot_usage(event: OneshotEvent, sqs_manager: SQSManager) -> None:
