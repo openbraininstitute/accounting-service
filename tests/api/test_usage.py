@@ -171,7 +171,7 @@ async def _db_open_longrun_jobs(db, _db_account):
 
 @pytest.mark.usefixtures("_db_open_longrun_jobs")
 async def test_get_open_longrun_jobs(api_client):
-    response = await api_client.get("/usage/longrun/open")
+    response = await api_client.get("/job/longrun/open")
 
     assert response.status_code == 200, response.text
     data = response.json()["data"]
@@ -185,7 +185,7 @@ async def test_get_open_longrun_jobs(api_client):
 
 @pytest.mark.usefixtures("_db_open_longrun_jobs")
 async def test_get_open_longrun_jobs_response_shape(api_client):
-    response = await api_client.get("/usage/longrun/open")
+    response = await api_client.get("/job/longrun/open")
 
     assert response.status_code == 200, response.text
     item = next(i for i in response.json()["data"]["items"] if i["id"] == str(UUIDS.JOB[0]))
@@ -202,7 +202,7 @@ async def test_get_open_longrun_jobs_response_shape(api_client):
 
 @pytest.mark.usefixtures("_db_open_longrun_jobs")
 async def test_get_open_longrun_jobs_subtype_filter(api_client):
-    response = await api_client.get("/usage/longrun/open", params={"subtype": "notebook"})
+    response = await api_client.get("/job/longrun/open", params={"subtype": "notebook"})
 
     assert response.status_code == 200, response.text
     data = response.json()["data"]
@@ -212,7 +212,7 @@ async def test_get_open_longrun_jobs_subtype_filter(api_client):
 
 @pytest.mark.usefixtures("_db_open_longrun_jobs")
 async def test_get_open_longrun_jobs_pagination(api_client):
-    response = await api_client.get("/usage/longrun/open", params={"page": 1, "page_size": 1})
+    response = await api_client.get("/job/longrun/open", params={"page": 1, "page_size": 1})
 
     assert response.status_code == 200, response.text
     data = response.json()["data"]
@@ -221,7 +221,7 @@ async def test_get_open_longrun_jobs_pagination(api_client):
     assert data["links"]["prev"] is None
     assert len(data["items"]) == 1
 
-    response2 = await api_client.get("/usage/longrun/open", params={"page": 2, "page_size": 1})
+    response2 = await api_client.get("/job/longrun/open", params={"page": 2, "page_size": 1})
     data2 = response2.json()["data"]
     assert data2["links"]["next"] is None
     assert data2["links"]["prev"] is not None
