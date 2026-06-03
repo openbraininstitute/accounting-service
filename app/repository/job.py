@@ -1,17 +1,24 @@
 """Job message repository module."""
 
-from collections.abc import Sequence
-from datetime import datetime
-from uuid import UUID
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import sqlalchemy as sa
-from sqlalchemy import null, or_, true
+from sqlalchemy import func, null, or_, true
 from sqlalchemy.dialects import postgresql as pg
 
-from app.constants import ServiceType
+from app.constants import ServiceSubtype, ServiceType
 from app.db.model import Job
 from app.repository.base import BaseRepository
 from app.schema.domain import StartedJob
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+    from datetime import datetime
+    from uuid import UUID
+
+    from app.schema.api import PaginatedParams
 
 
 class JobRepository(BaseRepository):
@@ -136,6 +143,31 @@ class JobRepository(BaseRepository):
         )
         rows = (await self.db.execute(query)).scalars().all()
         return [StartedJob.model_validate(row) for row in rows]
+
+    async def get_open_longrun_jobs(
+        self,
+        pagination: PaginatedParams,
+        *,
+        subtype: ServiceSubtype | None = None,
+    ) -> tuple[list[Job], int]:
+        """Get open longrun jobs (not finished, not cancelled), optionally filtered by subtype."""
+        where_clauses = [
+            Job.service_type == ServiceType.LONGRUN,
+            Job.finished_at == null(),
+            Job.cancelled_at == null(),
+            (Job.service_subtype == subtype) if subtype is not None else true(),
+        ]
+        count_query = sa.select(func.count()).select_from(Job).where(*where_clauses)
+        count = (await self.db.execute(count_query)).scalar_one()
+        jobs_query = (
+            sa.select(Job)
+            .where(*where_clauses)
+            .order_by(Job.created_at)
+            .limit(pagination.page_size)
+            .offset(pagination.page_size * (pagination.page - 1))
+        )
+        rows = (await self.db.execute(jobs_query)).scalars().all()
+        return list(rows), count
 
     async def get_oneshot_to_be_charged(
         self, *, proj_ids: list[UUID] | None = None

@@ -8,6 +8,7 @@ from app.api import (
     budget,
     discount,
     estimate,
+    job,
     price,
     report,
     reservation,
@@ -22,6 +23,7 @@ router.include_router(balance.router, prefix="/balance", tags=["balance"])
 router.include_router(budget.router, prefix="/budget", tags=["budget"])
 router.include_router(discount.router, prefix="/discount", tags=["discount"])
 router.include_router(estimate.router, prefix="/estimate", tags=["estimate"])
+router.include_router(job.router, prefix="/job", tags=["job"])
 router.include_router(price.router, prefix="/price", tags=["price"])
 router.include_router(report.router, prefix="/report", tags=["report"])
 router.include_router(reservation.router, prefix="/reservation", tags=["reservation"])

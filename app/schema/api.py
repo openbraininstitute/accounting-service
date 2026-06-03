@@ -459,3 +459,15 @@ JobReportUnionOut = Annotated[
     OneshotReportOut | LongrunReportOut | StorageReportOut,
     Field(discriminator="type"),
 ]
+
+
+class LongrunOpenJobOut(BaseModel, from_attributes=True):
+    """LongrunOpenJobOut."""
+
+    id: UUID
+    vlab_id: UUID
+    proj_id: UUID
+    service_subtype: ServiceSubtype
+    started_at: AwareDatetime | None
+    last_alive_at: AwareDatetime | None
+    created_at: AwareDatetime
