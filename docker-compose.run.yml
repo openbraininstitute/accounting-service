@@ -1,6 +1,7 @@
 services:
   app:
     profiles: [run]
+    container_name: app
     image: "${IMAGE_NAME}:${IMAGE_TAG}"
     build:
       dockerfile: Dockerfile
@@ -46,6 +47,7 @@ services:
 
   db:
     profiles: [run]
+    container_name: db
     image: postgres:17-alpine
     environment:
     - POSTGRES_USER=accounting_service
@@ -64,12 +66,13 @@ services:
     - pgdata:/var/lib/postgresql/data
     command:
     - postgres
-#    - -clog_statement=all
+    # - -clog_statement=all
     - -clog_min_duration_statement=100ms
     - -clog_lock_waits=on
 
   queue:
     profiles: [run]
+    container_name: queue
     image: softwaremill/elasticmq-native:latest
     ports:
     - "127.0.0.1:9324:9324"
