@@ -102,6 +102,7 @@ class ServiceSubtype(HyphenStrEnum):
     # } end of `CircuitScale`
     # `obi-one` via `launch-system`: Circuit Extraction
     CIRCUIT_EXTRACTION = auto()
+    EM_SYNAPSE_MAPPING = auto()
 
     # These are deprecated and should not be used any more
     ML_RAG = auto()
