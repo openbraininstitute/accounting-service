@@ -51,7 +51,7 @@ async def test_deplete_project_not_found(api_client):
         json={"proj_id": "00000000-0000-0000-0000-000000000099"},
     )
 
-    assert response.status_code == 500
+    assert response.status_code == 404
 
 
 @pytest.mark.usefixtures("_db_account")
