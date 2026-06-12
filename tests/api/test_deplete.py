@@ -58,7 +58,7 @@ async def test_deplete_project_not_found(api_client):
 async def test_deplete_all(api_client):
     """Deplete all credits from all projects and the vlab."""
     response = await api_client.post(
-        "/budget/deplete/all",
+        "/budget/deplete/vlab",
         json={"vlab_id": VLAB_ID},
     )
 
@@ -85,12 +85,12 @@ async def test_deplete_all(api_client):
 async def test_deplete_all_idempotent(api_client):
     """Depleting twice should return 0 the second time."""
     await api_client.post(
-        "/budget/deplete/all",
+        "/budget/deplete/vlab",
         json={"vlab_id": VLAB_ID},
     )
 
     response = await api_client.post(
-        "/budget/deplete/all",
+        "/budget/deplete/vlab",
         json={"vlab_id": VLAB_ID},
     )
 
