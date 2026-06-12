@@ -3,7 +3,17 @@
 from fastapi import APIRouter
 
 from app.dependencies import RepoGroupDep
-from app.schema.api import ApiResponse, AssignBudgetIn, MoveBudgetIn, ReverseBudgetIn, TopUpIn
+from app.schema.api import (
+    ApiResponse,
+    AssignBudgetIn,
+    DepleteOut,
+    DepleteProjectIn,
+    DepleteVlabIn,
+    GrantBudgetIn,
+    MoveBudgetIn,
+    ReverseBudgetIn,
+    TopUpIn,
+)
 from app.service import budget as budget_service
 
 router = APIRouter()
@@ -62,4 +72,47 @@ async def move(repos: RepoGroupDep, move_request: MoveBudgetIn) -> ApiResponse:
     )
     return ApiResponse(
         message="Move budget operation executed",
+    )
+
+
+@router.post("/deplete/project")
+async def deplete_project(
+    repos: RepoGroupDep, deplete_request: DepleteProjectIn
+) -> ApiResponse[DepleteOut]:
+    """Deplete all credits from a project."""
+    total_amount = await budget_service.deplete_project(
+        repos,
+        proj_id=deplete_request.proj_id,
+    )
+    return ApiResponse[DepleteOut](
+        message="Deplete project operation executed",
+        data=DepleteOut(total_amount=total_amount),
+    )
+
+
+@router.post("/grant")
+async def grant(repos: RepoGroupDep, grant_request: GrantBudgetIn) -> ApiResponse:
+    """Top-up and assign budget to a project in one transaction."""
+    await budget_service.grant(
+        repos,
+        proj_id=grant_request.proj_id,
+        amount=grant_request.amount,
+    )
+    return ApiResponse(
+        message="Grant budget operation executed",
+    )
+
+
+@router.post("/deplete/vlab")
+async def deplete_all(
+    repos: RepoGroupDep, deplete_request: DepleteVlabIn
+) -> ApiResponse[DepleteOut]:
+    """Deplete all credits from all projects and the virtual lab."""
+    total_amount = await budget_service.deplete_vlab(
+        repos,
+        vlab_id=deplete_request.vlab_id,
+    )
+    return ApiResponse[DepleteOut](
+        message="Deplete all operation executed",
+        data=DepleteOut(total_amount=total_amount),
     )

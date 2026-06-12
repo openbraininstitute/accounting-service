@@ -3,7 +3,7 @@
 from decimal import Decimal
 from uuid import UUID
 
-from app.constants import AccountType, TransactionType
+from app.constants import D0, AccountType, TransactionType
 from app.errors import ApiError, ApiErrorCode, ensure_result
 from app.repository.group import RepositoryGroup
 from app.utils import utcnow
@@ -114,3 +114,78 @@ async def move(
         transaction_datetime=now,
         transaction_type=TransactionType.MOVE_BUDGET,
     )
+
+
+async def grant(repos: RepositoryGroup, proj_id: UUID, amount: Decimal) -> None:
+    """Top-up a vlab and assign the budget to a project in one atomic transaction."""
+    now = utcnow()
+    with ensure_result(error_message="Account not found"):
+        accounts = await repos.account.get_accounts_by_proj_id(proj_id=proj_id)
+    await repos.ledger.insert_transaction(
+        amount=amount,
+        debited_from=accounts.sys.id,
+        credited_to=accounts.vlab.id,
+        transaction_datetime=now,
+        transaction_type=TransactionType.TOP_UP,
+    )
+    await repos.ledger.insert_transaction(
+        amount=amount,
+        debited_from=accounts.vlab.id,
+        credited_to=accounts.proj.id,
+        transaction_datetime=now,
+        transaction_type=TransactionType.ASSIGN_BUDGET,
+    )
+
+
+async def deplete_project(repos: RepositoryGroup, proj_id: UUID) -> Decimal:
+    """Deplete all credits from a project, moving them to the system account."""
+    now = utcnow()
+    with ensure_result(error_message="Account not found"):
+        accounts = await repos.account.get_accounts_by_proj_id(
+            proj_id=proj_id, for_update={AccountType.PROJ}
+        )
+    amount = accounts.proj.balance
+    if amount <= D0:
+        return D0
+    await repos.ledger.insert_transaction(
+        amount=amount,
+        debited_from=accounts.proj.id,
+        credited_to=accounts.sys.id,
+        transaction_datetime=now,
+        transaction_type=TransactionType.DEPLETE,
+        properties={"reason": "deplete_project"},
+    )
+    return amount
+
+
+async def deplete_vlab(repos: RepositoryGroup, vlab_id: UUID) -> Decimal:
+    """Deplete all credits from all projects and the vlab, moving them to the system account."""
+    now = utcnow()
+    with ensure_result(error_message="System account not found"):
+        system_account = await repos.account.get_system_account()
+    with ensure_result(error_message="Virtual lab not found"):
+        vlab = await repos.account.get_vlab_account(vlab_id=vlab_id, for_update=True)
+    projects = await repos.account.get_proj_accounts_for_vlab(vlab_id=vlab_id)
+    total_amount = D0
+    for proj in projects:
+        if proj.balance > D0:
+            await repos.ledger.insert_transaction(
+                amount=proj.balance,
+                debited_from=proj.id,
+                credited_to=system_account.id,
+                transaction_datetime=now,
+                transaction_type=TransactionType.DEPLETE,
+                properties={"reason": "deplete_project"},
+            )
+            total_amount += proj.balance
+    if vlab.balance > D0:
+        await repos.ledger.insert_transaction(
+            amount=vlab.balance,
+            debited_from=vlab.id,
+            credited_to=system_account.id,
+            transaction_datetime=now,
+            transaction_type=TransactionType.DEPLETE,
+            properties={"reason": "deplete_vlab"},
+        )
+        total_amount += vlab.balance
+    return total_amount
