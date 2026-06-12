@@ -227,6 +227,24 @@ class MoveBudgetIn(BaseModel):
     amount: Annotated[Decimal, Field(gt=D0)]
 
 
+class DepleteProjectIn(BaseModel):
+    """DepleteProjectIn."""
+
+    proj_id: UUID
+
+
+class DepleteVlabIn(BaseModel):
+    """DepleteVlabIn."""
+
+    vlab_id: UUID
+
+
+class DepleteOut(BaseModel):
+    """DepleteOut."""
+
+    total_amount: FormattedDecimal
+
+
 class PriceTierIn(BaseModel):
     """PriceTierIn."""
 
