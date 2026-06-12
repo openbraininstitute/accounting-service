@@ -116,6 +116,27 @@ async def move(
     )
 
 
+async def grant(repos: RepositoryGroup, proj_id: UUID, amount: Decimal) -> None:
+    """Top-up a vlab and assign the budget to a project in one atomic transaction."""
+    now = utcnow()
+    with ensure_result(error_message="Account not found"):
+        accounts = await repos.account.get_accounts_by_proj_id(proj_id=proj_id)
+    await repos.ledger.insert_transaction(
+        amount=amount,
+        debited_from=accounts.sys.id,
+        credited_to=accounts.vlab.id,
+        transaction_datetime=now,
+        transaction_type=TransactionType.TOP_UP,
+    )
+    await repos.ledger.insert_transaction(
+        amount=amount,
+        debited_from=accounts.vlab.id,
+        credited_to=accounts.proj.id,
+        transaction_datetime=now,
+        transaction_type=TransactionType.ASSIGN_BUDGET,
+    )
+
+
 async def deplete_project(repos: RepositoryGroup, proj_id: UUID) -> Decimal:
     """Deplete all credits from a project, moving them to the system account."""
     now = utcnow()

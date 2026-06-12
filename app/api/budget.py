@@ -9,6 +9,7 @@ from app.schema.api import (
     DepleteOut,
     DepleteProjectIn,
     DepleteVlabIn,
+    GrantBudgetIn,
     MoveBudgetIn,
     ReverseBudgetIn,
     TopUpIn,
@@ -86,6 +87,19 @@ async def deplete_project(
     return ApiResponse[DepleteOut](
         message="Deplete project operation executed",
         data=DepleteOut(total_amount=total_amount),
+    )
+
+
+@router.post("/grant")
+async def grant(repos: RepoGroupDep, grant_request: GrantBudgetIn) -> ApiResponse:
+    """Top-up and assign budget to a project in one transaction."""
+    await budget_service.grant(
+        repos,
+        proj_id=grant_request.proj_id,
+        amount=grant_request.amount,
+    )
+    return ApiResponse(
+        message="Grant budget operation executed",
     )
 
 

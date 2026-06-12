@@ -245,6 +245,13 @@ class DepleteOut(BaseModel):
     total_amount: FormattedDecimal
 
 
+class GrantBudgetIn(BaseModel):
+    """GrantBudgetIn."""
+
+    proj_id: UUID
+    amount: Annotated[Decimal, Field(gt=D0)]
+
+
 class PriceTierIn(BaseModel):
     """PriceTierIn."""
 
