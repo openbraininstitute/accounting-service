@@ -164,8 +164,11 @@ async def deplete_vlab(repos: RepositoryGroup, vlab_id: UUID) -> Decimal:
     with ensure_result(error_message="System account not found"):
         system_account = await repos.account.get_system_account()
     with ensure_result(error_message="Virtual lab not found"):
-        vlab = await repos.account.get_vlab_account(vlab_id=vlab_id, for_update=True)
+        vlab = await repos.account.get_vlab_account(vlab_id=vlab_id)
     projects = await repos.account.get_proj_accounts_for_vlab(vlab_id=vlab_id)
+    # Lock all involved accounts up front in deterministic order to avoid deadlocks
+    all_ids = sorted([system_account.id, vlab.id, *(p.id for p in projects)])
+    await repos.account.lock_accounts(all_ids)
     total_amount = D0
     for proj in projects:
         if proj.balance > D0:

@@ -111,6 +111,17 @@ class AccountRepository(BaseRepository):
         result = (await self.db.execute(query)).scalars()
         return [ProjAccount.model_validate(row) for row in result]
 
+    async def lock_accounts(self, account_ids: list[UUID]) -> None:
+        """Lock the given accounts in deterministic order to avoid deadlocks."""
+        if not account_ids:
+            return
+        await self.db.execute(
+            sa.select(Account.id)
+            .where(Account.id.in_(account_ids))
+            .order_by(Account.id)
+            .with_for_update()
+        )
+
     async def get_reservation_accounts(
         self, proj_ids: list[UUID], *, for_update: bool = False
     ) -> list[RsvAccount]:
