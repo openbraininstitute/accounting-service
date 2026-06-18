@@ -1,7 +1,7 @@
 """Add DEPLETE transaction type
 
 Revision ID: a1b2c3d4e5f6
-Revises: 8c8dc5fa244d
+Revises: 8eb5df0b7cbe
 Create Date: 2026-06-12 10:30:00.000000
 
 """
