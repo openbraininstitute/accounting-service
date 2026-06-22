@@ -103,6 +103,7 @@ class ServiceSubtype(HyphenStrEnum):
     # `obi-one` via `launch-system`: Circuit Extraction
     CIRCUIT_EXTRACTION = auto()
     EM_SYNAPSE_MAPPING = auto()
+    BRIAN2_CIRCUIT_SIMULATION = auto()
 
     # These are deprecated and should not be used any more
     ML_RAG = auto()
