@@ -158,7 +158,7 @@ async def deplete_project(repos: RepositoryGroup, proj_id: UUID) -> Decimal:
     return amount
 
 
-async def deplete_vlab(repos: RepositoryGroup, vlab_id: UUID) -> Decimal:
+async def deplete_virtual_lab(repos: RepositoryGroup, vlab_id: UUID) -> Decimal:
     """Deplete all credits from all projects and the vlab, moving them to the system account."""
     now = utcnow()
     with ensure_result(error_message="System account not found"):

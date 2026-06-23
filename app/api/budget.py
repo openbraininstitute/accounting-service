@@ -75,6 +75,19 @@ async def move(repos: RepoGroupDep, move_request: MoveBudgetIn) -> ApiResponse:
     )
 
 
+@router.post("/grant")
+async def grant(repos: RepoGroupDep, grant_request: GrantBudgetIn) -> ApiResponse:
+    """Top-up and assign budget to a project in one transaction."""
+    await budget_service.grant(
+        repos,
+        proj_id=grant_request.proj_id,
+        amount=grant_request.amount,
+    )
+    return ApiResponse(
+        message="Grant budget operation executed",
+    )
+
+
 @router.post("/deplete/project")
 async def deplete_project(
     repos: RepoGroupDep, deplete_request: DepleteProjectIn
@@ -90,21 +103,8 @@ async def deplete_project(
     )
 
 
-@router.post("/grant")
-async def grant(repos: RepoGroupDep, grant_request: GrantBudgetIn) -> ApiResponse:
-    """Top-up and assign budget to a project in one transaction."""
-    await budget_service.grant(
-        repos,
-        proj_id=grant_request.proj_id,
-        amount=grant_request.amount,
-    )
-    return ApiResponse(
-        message="Grant budget operation executed",
-    )
-
-
-@router.post("/deplete/vlab")
-async def deplete_all(
+@router.post("/deplete/virtual-lab")
+async def deplete_virtual_lab(
     repos: RepoGroupDep, deplete_request: DepleteVlabIn
 ) -> ApiResponse[DepleteOut]:
     """Deplete all credits from all projects and the virtual lab."""
@@ -113,6 +113,6 @@ async def deplete_all(
         vlab_id=deplete_request.vlab_id,
     )
     return ApiResponse[DepleteOut](
-        message="Deplete all operation executed",
+        message="Deplete virtual lab operation executed",
         data=DepleteOut(total_amount=total_amount),
     )
