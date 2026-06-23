@@ -55,7 +55,7 @@ async def test_deplete_project_not_found(api_client):
 
 
 @pytest.mark.usefixtures("_db_account")
-async def test_deplete_all(api_client):
+async def test_deplete_virtual_lab(api_client):
     """Deplete all credits from all projects and the vlab."""
     response = await api_client.post(
         "/budget/deplete/virtual-lab",
@@ -82,10 +82,10 @@ async def test_deplete_all(api_client):
 
 
 @pytest.mark.usefixtures("_db_account")
-async def test_deplete_all_idempotent(api_client):
+async def test_deplete_virtual_lab_idempotent(api_client):
     """Depleting twice should return 0 the second time."""
     await api_client.post(
-        "/budget/deplete/vlab",
+        "/budget/deplete/virtual-lab",
         json={"vlab_id": VLAB_ID},
     )
 
