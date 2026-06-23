@@ -90,7 +90,7 @@ async def test_deplete_all_idempotent(api_client):
     )
 
     response = await api_client.post(
-        "/budget/deplete/vlab",
+        "/budget/deplete/virtual-lab",
         json={"vlab_id": VLAB_ID},
     )
 
