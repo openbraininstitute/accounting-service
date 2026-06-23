@@ -1,7 +1,7 @@
 """Add DEPLETE transaction type
 
 Revision ID: a1b2c3d4e5f6
-Revises: 8eb5df0b7cbe
+Revises: c1faa7313bda
 Create Date: 2026-06-12 10:30:00.000000
 
 """
@@ -14,7 +14,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "a1b2c3d4e5f6"
-down_revision: str | None = "8eb5df0b7cbe"
+down_revision: str | None = "c1faa7313bda"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
