@@ -55,6 +55,7 @@ class TransactionType(HyphenStrEnum):
     CHARGE_LONGRUN = auto()  # from RSV to SYS, or from PROJ to SYS
     CHARGE_STORAGE = auto()  # from RSV to SYS, or from PROJ to SYS
     REFUND = auto()  # from SYS to PROJ
+    DEPLETE = auto()  # from PROJ to SYS, or from VLAB to SYS
 
 
 class ServiceSubtype(HyphenStrEnum):
