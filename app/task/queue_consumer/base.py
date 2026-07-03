@@ -44,12 +44,12 @@ class QueueConsumer(ABC):
 
     @property
     def name(self) -> str:
-        """Return the name of the task."""
+        """The name of the task."""
         return self._name
 
     @property
     def queue_name(self) -> str:
-        """Return the queue name."""
+        """The queue name."""
         return self._queue_name
 
     @abstractmethod
