@@ -69,7 +69,7 @@ class SQSManager:
 
     @property
     def client(self) -> AioBaseClient:
-        """Return the SQS client."""
+        """The SQS client."""
         if not self._client:
             err = "SQS client can be accessed only inside the context manager"
             raise RuntimeError(err)
@@ -77,5 +77,5 @@ class SQSManager:
 
     @property
     def queue_urls(self) -> dict[str, str]:
-        """Return the dict of queue urls."""
+        """The dict of queue urls."""
         return self._queue_urls

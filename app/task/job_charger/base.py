@@ -30,7 +30,7 @@ class BaseTask(ABC):
 
     @property
     def name(self) -> str:
-        """Return the name of the task."""
+        """The name of the task."""
         return self._name
 
     def reset_stats(self) -> None:
@@ -48,7 +48,7 @@ class BaseTask(ABC):
 
     @property
     def _counter(self) -> int:
-        """Return the total number of loops executed."""
+        """The total number of loops executed."""
         return self._success + self._failure
 
     @abstractmethod

@@ -39,40 +39,40 @@ class RepositoryGroup:
 
     @property
     def db(self) -> AsyncSession:
-        """Return the shared database session."""
+        """The shared database session."""
         return self._db
 
     @cached_property
     def account(self) -> AccountRepository:
-        """Return the account repository."""
+        """The account repository."""
         return self._account_repo_class(self.db)
 
     @cached_property
     def discount(self) -> DiscountRepository:
-        """Return the account repository."""
+        """The account repository."""
         return self._discount_repo_class(self.db)
 
     @cached_property
     def event(self) -> EventRepository:
-        """Return the event repository."""
+        """The event repository."""
         return self._event_repo_class(self.db)
 
     @cached_property
     def job(self) -> JobRepository:
-        """Return the job repository."""
+        """The job repository."""
         return self._job_repo_class(self.db)
 
     @cached_property
     def ledger(self) -> LedgerRepository:
-        """Return the ledger repository."""
+        """The ledger repository."""
         return self._ledger_repo_class(self.db)
 
     @cached_property
     def price(self) -> PriceRepository:
-        """Return the price repository."""
+        """The price repository."""
         return self._price_repo_class(self.db)
 
     @cached_property
     def report(self) -> ReportRepository:
-        """Return the report repository."""
+        """The report repository."""
         return self._report_repo_class(self.db)
