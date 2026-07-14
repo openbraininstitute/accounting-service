@@ -16,6 +16,7 @@ dependencies = [
     "loguru",
     "pydantic>=2",
     "pydantic-settings>=2.2.1",
+    "sentry-sdk>=2.65.0",
     "sqlalchemy[asyncio]",
     "uvicorn[standard]",
 ]

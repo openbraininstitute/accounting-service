@@ -1,8 +1,9 @@
 """Configuration."""
 
 from decimal import Decimal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, PostgresDsn, field_validator
+from pydantic import BaseModel, Field, PostgresDsn, field_validator
 from pydantic_core.core_schema import ValidationInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -32,6 +33,7 @@ class Settings(BaseSettings):
     APP_VERSION: str | None = None
     APP_DEBUG: bool = False
     COMMIT_SHA: str | None = None
+    DEPLOYMENT_ENV: Literal["local", "staging", "production"] = "local"
 
     UVICORN_PORT: int = 8000
 
@@ -75,6 +77,10 @@ class Settings(BaseSettings):
     SQS_LONGRUN_QUEUE_NAME: str = "longrun.fifo"
     SQS_CLIENT_ERROR_SLEEP: float = 10
     SQS_CLIENT_CONFIG: SQSClientConfig = SQSClientConfig()
+
+    SENTRY_DSN: str | None = None
+    SENTRY_TRACES_SAMPLE_RATE: Annotated[float, Field(ge=0, le=1)] = 1
+    SENTRY_PROFILE_SESSION_SAMPLE_RATE: Annotated[float, Field(ge=0, le=1)] = 1
 
     DB_ENGINE: str = "postgresql+asyncpg"
     DB_USER: str = "accounting_service"
