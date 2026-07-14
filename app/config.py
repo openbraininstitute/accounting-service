@@ -79,8 +79,8 @@ class Settings(BaseSettings):
     SQS_CLIENT_CONFIG: SQSClientConfig = SQSClientConfig()
 
     SENTRY_DSN: str | None = None
-    SENTRY_TRACES_SAMPLE_RATE: Annotated[float, Field(ge=0, le=1)] = 1
-    SENTRY_PROFILE_SESSION_SAMPLE_RATE: Annotated[float, Field(ge=0, le=1)] = 1
+    SENTRY_TRACES_SAMPLE_RATE: Annotated[float, Field(ge=0, le=1)] = 0.1
+    SENTRY_PROFILE_SESSION_SAMPLE_RATE: Annotated[float, Field(ge=0, le=1)] = 0.1
 
     DB_ENGINE: str = "postgresql+asyncpg"
     DB_USER: str = "accounting_service"
