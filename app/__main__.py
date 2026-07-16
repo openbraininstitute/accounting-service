@@ -9,6 +9,7 @@ import uvloop
 from app.config import settings
 from app.db.session import database_session_manager
 from app.logger import configure_logging
+from app.sentry import init_sentry
 from app.task.job_charger.longrun import PeriodicLongrunCharger
 from app.task.job_charger.oneshot import PeriodicOneshotCharger
 from app.task.job_charger.storage import PeriodicStorageCharger
@@ -20,6 +21,7 @@ from app.task.queue_consumer.storage import StorageQueueConsumer
 async def main() -> None:
     """Init and run all the async tasks."""
     configure_logging()
+    init_sentry()
     database_session_manager.initialize(
         url=settings.DB_URI,
         pool_size=settings.DB_POOL_SIZE,
