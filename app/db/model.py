@@ -74,7 +74,7 @@ class Job(Base):
     created_at: Mapped[CREATED_AT]
     updated_at: Mapped[UPDATED_AT]
     reserved_at: Mapped[datetime | None]
-    started_at: Mapped[datetime | None]
+    started_at: Mapped[datetime | None] = mapped_column(index=True)
     last_alive_at: Mapped[datetime | None]
     last_charged_at: Mapped[datetime | None]
     finished_at: Mapped[datetime | None]
@@ -104,7 +104,7 @@ class Journal(Base):
     __tablename__ = "journal"
 
     id: Mapped[BIGINT] = mapped_column(Identity(always=True), primary_key=True)
-    transaction_datetime: Mapped[datetime]
+    transaction_datetime: Mapped[datetime] = mapped_column(index=True)
     transaction_type: Mapped[TransactionType]
     job_id: Mapped[UUID | None] = mapped_column(ForeignKey("job.id"), index=True)
     price_id: Mapped[BIGINT | None] = mapped_column(ForeignKey("price.id"), index=True)

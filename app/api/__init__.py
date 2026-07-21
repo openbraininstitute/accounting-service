@@ -4,6 +4,7 @@ from fastapi import APIRouter
 
 from app.api import (
     account,
+    admin,
     balance,
     budget,
     discount,
@@ -19,6 +20,7 @@ from app.api import (
 router = APIRouter()
 router.include_router(root.router)
 router.include_router(account.router, prefix="/account", tags=["account"])
+router.include_router(admin.router, prefix="/admin")
 router.include_router(balance.router, prefix="/balance", tags=["balance"])
 router.include_router(budget.router, prefix="/budget", tags=["budget"])
 router.include_router(discount.router, prefix="/discount", tags=["discount"])

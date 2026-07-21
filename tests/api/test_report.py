@@ -2,6 +2,8 @@ from unittest.mock import ANY
 
 import pytest
 
+from app.utils import utcnow
+
 from tests.constants import UUIDS
 
 
@@ -150,3 +152,23 @@ async def test_get_report_not_found(api_client, url, expected_message):
         "error_code": "ENTITY_NOT_FOUND",
         "message": expected_message,
     }
+
+
+@pytest.mark.usefixtures("_db_ledger")
+async def test_get_report_date_filters(api_client):
+    now = utcnow()
+
+    response = await api_client.get("/report/system", params={"started_after": now.isoformat()})
+    assert response.status_code == 200, response.text
+    assert response.json()["data"]["meta"]["total_items"] == 0
+
+    response = await api_client.get("/report/system", params={"started_before": now.isoformat()})
+    assert response.status_code == 200, response.text
+    assert response.json()["data"]["meta"]["total_items"] == 3
+
+    response = await api_client.get(
+        "/report/system",
+        params={"started_after": now.isoformat(), "started_before": now.isoformat()},
+    )
+    assert response.status_code == 400, response.text
+    assert response.json()["error_code"] == "INVALID_REQUEST"

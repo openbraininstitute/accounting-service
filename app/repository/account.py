@@ -1,13 +1,16 @@
 """Account repository module."""
 
+from collections.abc import Sequence
 from uuid import UUID
 
 import sqlalchemy as sa
-from sqlalchemy import and_, true
+from sqlalchemy import and_, func, true
+from sqlalchemy.orm import aliased
 
 from app.constants import AccountType
 from app.db.model import Account
 from app.repository.base import BaseRepository
+from app.schema.api import PaginatedParams
 from app.schema.domain import Accounts, ProjAccount, RsvAccount, SysAccount, VlabAccount
 from app.utils import create_uuid
 
@@ -151,6 +154,94 @@ class AccountRepository(BaseRepository):
             errmsg = "Multiple reservation accounts were found for some projects"
             raise ValueError(errmsg)
         return result
+
+    async def get_account(self, account_id: UUID) -> Account | None:
+        """Return any account by id, including disabled accounts, or None if missing."""
+        query = sa.select(Account).where(Account.id == account_id)
+        return (await self.db.execute(query)).scalar_one_or_none()
+
+    async def list_accounts(
+        self,
+        pagination: PaginatedParams,
+        *,
+        account_type: AccountType | None = None,
+        parent_id: UUID | None = None,
+        name: str | None = None,
+        enabled: bool | None = None,
+    ) -> tuple[Sequence[Account], int]:
+        """Return a page of accounts and the total count, including disabled accounts.
+
+        Unlike the other getters, disabled accounts are returned unless filtered
+        out explicitly with `enabled`.
+        """
+        where_clauses = [
+            (Account.account_type == account_type) if account_type is not None else true(),
+            (Account.parent_id == parent_id) if parent_id is not None else true(),
+            Account.name.icontains(name, autoescape=True) if name is not None else true(),
+            (Account.enabled == enabled) if enabled is not None else true(),
+        ]
+        count_query = sa.select(func.count()).select_from(Account).where(*where_clauses)
+        count = (await self.db.execute(count_query)).scalar_one()
+        query = (
+            sa.select(Account)
+            .where(*where_clauses)
+            .order_by(Account.created_at.desc(), Account.id)
+            .limit(pagination.page_size)
+            .offset(pagination.page_size * (pagination.page - 1))
+        )
+        rows = (await self.db.execute(query)).scalars().all()
+        return rows, count
+
+    async def list_projects_with_reservation(
+        self,
+        pagination: PaginatedParams,
+        *,
+        vlab_id: UUID,
+        enabled: bool | None = None,
+    ) -> tuple[Sequence[sa.Row], int]:
+        """Return a page of (project account, reservation balance) rows for a virtual-lab.
+
+        Disabled accounts are returned unless filtered out explicitly with `enabled`.
+        """
+        rsv = aliased(Account)
+        where_clauses = [
+            Account.account_type == AccountType.PROJ,
+            Account.parent_id == vlab_id,
+            (Account.enabled == enabled) if enabled is not None else true(),
+        ]
+        count_query = sa.select(func.count()).select_from(Account).where(*where_clauses)
+        count = (await self.db.execute(count_query)).scalar_one()
+        query = (
+            sa.select(Account, rsv.balance.label("reservation"))
+            .outerjoin(rsv, and_(rsv.parent_id == Account.id, rsv.account_type == AccountType.RSV))
+            .where(*where_clauses)
+            .order_by(Account.created_at.desc(), Account.id)
+            .limit(pagination.page_size)
+            .offset(pagination.page_size * (pagination.page - 1))
+        )
+        rows = (await self.db.execute(query)).all()
+        return rows, count
+
+    async def get_child_account_ids(self, parent_ids: Sequence[UUID]) -> list[UUID]:
+        """Return the ids of the direct children of the given accounts, including disabled."""
+        if not parent_ids:
+            return []
+        query = sa.select(Account.id).where(Account.parent_id.in_(parent_ids))
+        return list((await self.db.execute(query)).scalars().all())
+
+    async def set_accounts_enabled(
+        self, account_ids: Sequence[UUID], *, enabled: bool
+    ) -> Sequence[Account]:
+        """Set the enabled flag on the given accounts and return the updated rows."""
+        if not account_ids:
+            return []
+        query = (
+            sa.update(Account)
+            .values(enabled=enabled)
+            .where(Account.id.in_(account_ids))
+            .returning(Account)
+        )
+        return (await self.db.execute(query)).scalars().all()
 
     async def _add_generic_account(self, **kwargs) -> Account:
         return (
