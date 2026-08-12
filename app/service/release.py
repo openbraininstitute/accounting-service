@@ -35,6 +35,8 @@ async def _release_reservation(
         )
     with ensure_result(error_message="Account not found"):
         accounts = await repos.account.get_accounts_by_proj_id(proj_id=job.proj_id)
+    # Lock accounts upfront in deterministic order to prevent deadlocks
+    await repos.account.lock_accounts([accounts.rsv.id, accounts.proj.id])
     remaining_reservation = await repos.ledger.get_remaining_reservation_for_job(
         job_id=job.id, account_id=accounts.rsv.id, raise_if_negative=True
     )
