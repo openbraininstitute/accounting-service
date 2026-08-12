@@ -19,7 +19,7 @@ class PeriodicStorageCharger(BaseTask):
             error_sleep=settings.CHARGE_STORAGE_ERROR_SLEEP,
         )
 
-    async def _run_once(self) -> None:  # noqa: PLR6301
+    async def _run_once(self) -> None:  # ruff: ignore[no-self-use]
         session_factory = database_session_manager.session
 
         # get and charge finished jobs not charged or partially charged

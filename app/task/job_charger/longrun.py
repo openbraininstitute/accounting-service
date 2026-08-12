@@ -18,7 +18,7 @@ class PeriodicLongrunCharger(BaseTask):
             error_sleep=settings.CHARGE_LONGRUN_ERROR_SLEEP,
         )
 
-    async def _run_once(self) -> None:  # noqa: PLR6301
+    async def _run_once(self) -> None:  # ruff: ignore[no-self-use]
         await charge_longrun(
             session_factory=database_session_manager.session,
             min_charging_interval=settings.CHARGE_LONGRUN_MIN_CHARGING_INTERVAL,

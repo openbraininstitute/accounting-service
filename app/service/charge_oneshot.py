@@ -107,7 +107,7 @@ async def charge_oneshot(session_factory: SessionFactory) -> ChargeOneshotResult
                 await _charge_generic(
                     repos, job, charging_at=job.started_at, reason="finished_uncharged"
                 )
-        except Exception:  # noqa: BLE001
+        except Exception:  # ruff: ignore[blind-except]
             L.exception("Error processing oneshot job {}", job.id)
             result.failure += 1
         else:

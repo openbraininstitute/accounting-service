@@ -3,7 +3,7 @@ import logging
 from collections.abc import Iterable
 from logging.config import fileConfig
 
-import alembic_postgresql_enum  # noqa: F401
+import alembic_postgresql_enum  # ruff: ignore[unused-import]
 from alembic.environment import MigrationContext
 from alembic.operations import MigrationScript
 from sqlalchemy import pool, text

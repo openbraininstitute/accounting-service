@@ -104,7 +104,7 @@ async def charge_storage(
                     min_charging_interval=min_charging_interval,
                     min_charging_amount=min_charging_amount,
                 )
-        except Exception:  # noqa: BLE001
+        except Exception:  # ruff: ignore[blind-except]
             L.exception("Error processing storage job {}", job.id)
             result.failure += 1
         else:

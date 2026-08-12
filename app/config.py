@@ -84,7 +84,7 @@ class Settings(BaseSettings):
 
     DB_ENGINE: str = "postgresql+asyncpg"
     DB_USER: str = "accounting_service"
-    DB_PASS: str = "accounting_service"  # noqa: S105
+    DB_PASS: str = "accounting_service"  # ruff: ignore[hardcoded-password-string]
     DB_HOST: str = "db"
     DB_PORT: int = 5432
     DB_NAME: str = "accounting_service"

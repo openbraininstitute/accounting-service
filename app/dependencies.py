@@ -15,7 +15,7 @@ from app.repository.group import RepositoryGroup
 async def _database_session_factory() -> AsyncIterator[AsyncSession]:
     """Yield a database session, to be used as a dependency."""
     async with database_session_manager.session() as session:
-        yield session  # noqa: ASYNC119
+        yield session  # ruff: ignore[yield-in-context-manager-in-async-generator]
 
 
 def _repo_group(db: "SessionDep") -> RepositoryGroup:

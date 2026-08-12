@@ -154,7 +154,7 @@ async def _charge_generic(
     )
 
 
-def _resolve_charge_params(  # noqa: PLR0911
+def _resolve_charge_params(  # ruff: ignore[too-many-return-statements]
     job: StartedJob,
     *,
     now: datetime,
@@ -289,7 +289,7 @@ async def charge_longrun(
         try:
             async with session_factory() as db:
                 await _charge_generic(RepositoryGroup(db=db), job, params)
-        except Exception:  # noqa: BLE001
+        except Exception:  # ruff: ignore[blind-except]
             L.exception("Error processing longrun job {}", job.id)
             counts["failure"] += 1
         else:

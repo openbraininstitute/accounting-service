@@ -1,6 +1,3 @@
-# ruff: noqa: PGH004
-# ruff: noqa
-
 import logging
 import os
 import time

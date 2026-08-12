@@ -10,7 +10,7 @@ class HyphenStrEnum(StrEnum):
     """
 
     @staticmethod
-    def _generate_next_value_(name: str, start: int, count: int, last_values: list[str]) -> str:  # noqa: ARG004
+    def _generate_next_value_(name: str, start: int, count: int, last_values: list[str]) -> str:  # ruff: ignore[unused-static-method-argument]
         """Return the hyphenated lower-cased version of the member name."""
         return name.lower().replace("_", "-")
 
@@ -22,6 +22,6 @@ class UpperStrEnum(StrEnum):
     """
 
     @staticmethod
-    def _generate_next_value_(name: str, start: int, count: int, last_values: list[str]) -> str:  # noqa: ARG004
+    def _generate_next_value_(name: str, start: int, count: int, last_values: list[str]) -> str:  # ruff: ignore[unused-static-method-argument]
         """Return the upper-cased version of the member name."""
         return name.upper()
