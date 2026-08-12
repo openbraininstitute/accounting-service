@@ -43,6 +43,8 @@ async def _charge_generic(
         )
         return
     accounts = await repos.account.get_accounts_by_proj_id(proj_id=job.proj_id)
+    # Lock accounts upfront in deterministic order to prevent deadlocks
+    await repos.account.lock_accounts([accounts.rsv.id, accounts.proj.id, accounts.sys.id])
     price = await repos.price.get_price(
         vlab_id=accounts.vlab.id,
         service_type=job.service_type,
