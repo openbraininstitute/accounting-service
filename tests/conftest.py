@@ -102,7 +102,7 @@ def sqs_client_factory(sqs_client):
     """Always return the same sqs client for performance reasons."""
 
     @asynccontextmanager
-    async def factory(client_config=None):  # noqa: ARG001
+    async def factory(client_config=None):  # ruff: ignore[unused-function-argument]
         yield sqs_client
 
     return factory

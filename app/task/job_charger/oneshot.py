@@ -18,5 +18,5 @@ class PeriodicOneshotCharger(BaseTask):
             error_sleep=settings.CHARGE_ONESHOT_ERROR_SLEEP,
         )
 
-    async def _run_once(self) -> None:  # noqa: PLR6301
+    async def _run_once(self) -> None:  # ruff: ignore[no-self-use]
         await charge_oneshot(session_factory=database_session_manager.session)

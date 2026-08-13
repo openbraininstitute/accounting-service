@@ -12,7 +12,7 @@ from aiobotocore.client import AioBaseClient
 class CreateSQSClientProtocol(Protocol):
     """Protocol defining the async function create_default_sqs_client."""
 
-    def __call__(  # noqa: D102
+    def __call__(  # ruff: ignore[undocumented-public-method]
         self, client_config: dict[str, Any] | None = None
     ) -> AbstractAsyncContextManager[AioBaseClient]: ...
 
