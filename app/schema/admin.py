@@ -2,10 +2,10 @@
 
 from decimal import Decimal
 from enum import auto
-from typing import Annotated, Any
+from typing import Annotated, Any, Self
 from uuid import UUID
 
-from pydantic import AwareDatetime, Field
+from pydantic import AwareDatetime, Field, model_validator
 
 from app.constants import (
     D0,
@@ -16,7 +16,12 @@ from app.constants import (
     TransactionType,
 )
 from app.enum import HyphenStrEnum
-from app.schema.api import AddPriceBase, PriceTierOut
+from app.schema.api import (
+    AddPriceBase,
+    PaginationQueryParams,
+    PriceTierOut,
+    StartedIntervalQueryParams,
+)
 from app.schema.common import BaseModel, FormattedDecimal
 
 
@@ -83,6 +88,33 @@ class AdminAccountStatusOut(BaseModel):
     open_job_ids: list[UUID]
 
 
+class TransactionIntervalQueryParams(BaseModel):
+    """Query parameters filtering by the interval when a transaction was recorded."""
+
+    transaction_after: AwareDatetime | None = None
+    transaction_before: AwareDatetime | None = None
+
+    @model_validator(mode="after")
+    def check_transaction_interval(self) -> Self:
+        """Check that the interval is not empty."""
+        if (
+            self.transaction_after
+            and self.transaction_before
+            and self.transaction_after >= self.transaction_before
+        ):
+            err = "transaction_after must be before transaction_before"
+            raise ValueError(err)
+        return self
+
+
+class AdminJournalQueryParams(PaginationQueryParams, TransactionIntervalQueryParams):
+    """Query parameters of the admin journal endpoint."""
+
+    account_id: UUID | None = None
+    transaction_type: TransactionType | None = None
+    job_id: UUID | None = None
+
+
 class AdminLedgerEntryOut(BaseModel):
     """One side of a double-entry transaction."""
 
@@ -104,6 +136,16 @@ class AdminJournalOut(BaseModel):
     discount_id: int | None
     properties: dict[str, Any] | None
     ledgers: list[AdminLedgerEntryOut]
+
+
+class AdminJobQueryParams(PaginationQueryParams, StartedIntervalQueryParams):
+    """Query parameters of the admin job endpoint."""
+
+    vlab_id: UUID | None = None
+    proj_id: UUID | None = None
+    service_type: ServiceType | None = None
+    service_subtype: ServiceSubtype | None = None
+    status: AdminJobStatus | None = None
 
 
 class AdminJobOut(BaseModel):
@@ -165,7 +207,13 @@ class AdminRefundIn(BaseModel):
     """AdminRefundIn."""
 
     job_id: UUID
-    amount: Annotated[Decimal, Field(gt=D0)]
+    amount: (
+        Annotated[
+            Decimal,
+            Field(gt=D0, description="Amount to refund. If omitted, the whole job is refunded."),
+        ]
+        | None
+    ) = None
     reason: str | None = None
 
 

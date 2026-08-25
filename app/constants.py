@@ -54,7 +54,8 @@ class TransactionType(HyphenStrEnum):
     CHARGE_ONESHOT = auto()  # from RSV to SYS, or from PROJ to SYS
     CHARGE_LONGRUN = auto()  # from RSV to SYS, or from PROJ to SYS
     CHARGE_STORAGE = auto()  # from RSV to SYS, or from PROJ to SYS
-    REFUND = auto()  # from SYS to PROJ
+    OVERCHARGE_REFUND = auto()  # from SYS to PROJ, job charged past its finish time
+    MANUAL_REFUND = auto()  # from SYS to PROJ, issued by an operator via POST /admin/refund
     DEPLETE = auto()  # from PROJ to SYS, or from VLAB to SYS
 
 

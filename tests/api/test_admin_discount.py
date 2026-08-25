@@ -20,7 +20,7 @@ async def _create_discount(api_client, **kwargs):
         "valid_to": "2031-01-01T00:00:00Z",
         **kwargs,
     }
-    response = await api_client.post("/discount", json=payload)
+    response = await api_client.post("/admin/discount", json=payload)
     assert response.status_code == 201, response.text
     return response.json()["data"]["id"]
 
@@ -35,6 +35,140 @@ async def active_discount_id(api_client, _db_account):
 @pytest.fixture
 async def future_discount_id(api_client, _db_account):
     return await _create_discount(api_client)
+
+
+@pytest.mark.usefixtures("_db_account")
+async def test_post_discount_as_str(api_client):
+    data = {
+        "vlab_id": VLAB_ID,
+        "discount": "0.2",
+        "valid_from": "2024-01-01T00:00:00Z",
+        "valid_to": None,
+    }
+    response = await api_client.post("/admin/discount", json=data)
+
+    assert response.status_code == 201
+
+    res_data = response.json()["data"]
+
+    assert res_data["vlab_id"] == VLAB_ID
+    assert res_data["discount"] == "0.2"
+    assert res_data["valid_from"] == "2024-01-01T00:00:00Z"
+
+
+@pytest.mark.usefixtures("_db_account")
+async def test_post_discount_as_float(api_client):
+    data = {
+        "vlab_id": VLAB_ID,
+        "discount": 0.2,
+        "valid_from": "2024-01-01T00:00:00Z",
+        "valid_to": None,
+    }
+    response = await api_client.post("/admin/discount", json=data)
+
+    assert response.status_code == 201
+
+    res_data = response.json()["data"]
+
+    assert res_data["vlab_id"] == VLAB_ID
+    assert res_data["discount"] == "0.2"
+    assert res_data["valid_from"] == "2024-01-01T00:00:00Z"
+
+
+@pytest.mark.usefixtures("_db_account")
+async def test_post_discount_lt_zero(api_client):
+    data = {
+        "vlab_id": VLAB_ID,
+        "discount": -0.2,
+        "valid_from": "2024-01-01T00:00:00Z",
+        "valid_to": None,
+    }
+    response = await api_client.post("/admin/discount", json=data)
+
+    assert response.status_code == 422
+
+
+@pytest.mark.usefixtures("_db_account")
+async def test_post_discount_zero(api_client):
+    data = {
+        "vlab_id": VLAB_ID,
+        "discount": "0",
+        "valid_from": "2024-01-01T00:00:00Z",
+        "valid_to": None,
+    }
+    response = await api_client.post("/admin/discount", json=data)
+
+    assert response.status_code == 201
+
+    res_data = response.json()["data"]
+
+    assert res_data["vlab_id"] == VLAB_ID
+    assert res_data["discount"] == "0"
+    assert res_data["valid_from"] == "2024-01-01T00:00:00Z"
+
+
+@pytest.mark.usefixtures("_db_account")
+async def test_post_discount_one(api_client):
+    data = {
+        "vlab_id": VLAB_ID,
+        "discount": "1",
+        "valid_from": "2024-01-01T00:00:00Z",
+        "valid_to": None,
+    }
+    response = await api_client.post("/admin/discount", json=data)
+
+    assert response.status_code == 201
+
+    res_data = response.json()["data"]
+
+    assert res_data["vlab_id"] == VLAB_ID
+    assert res_data["discount"] == "1"
+    assert res_data["valid_from"] == "2024-01-01T00:00:00Z"
+
+
+@pytest.mark.usefixtures("_db_account")
+async def test_post_discount_gt_one(api_client):
+    data = {
+        "vlab_id": VLAB_ID,
+        "discount": 1.2,
+        "valid_from": "2024-01-01T00:00:00Z",
+        "valid_to": None,
+    }
+    response = await api_client.post("/admin/discount", json=data)
+
+    assert response.status_code == 422
+
+
+@pytest.mark.usefixtures("_db_account")
+async def test_post_discount_with_valid_valid_to(api_client):
+    data = {
+        "vlab_id": VLAB_ID,
+        "discount": "0.2",
+        "valid_from": "2024-01-01T00:00:00Z",
+        "valid_to": "2025-01-01T00:00:00Z",
+    }
+    response = await api_client.post("/admin/discount", json=data)
+
+    assert response.status_code == 201
+
+    res_data = response.json()["data"]
+
+    assert res_data["vlab_id"] == VLAB_ID
+    assert res_data["discount"] == "0.2"
+    assert res_data["valid_from"] == "2024-01-01T00:00:00Z"
+
+
+@pytest.mark.usefixtures("_db_account")
+async def test_post_discount_with_invalid_valid_to(api_client):
+    data = {
+        "vlab_id": VLAB_ID,
+        "discount": "0.2",
+        "valid_from": "2024-01-01T00:00:00Z",
+        "valid_to": "2023-01-01T00:00:00Z",
+    }
+    response = await api_client.post("/admin/discount", json=data)
+
+    assert response.status_code == 422
 
 
 async def test_get_discounts(api_client, active_discount_id, future_discount_id):

@@ -3,15 +3,33 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, status
 from starlette.requests import Request
 
 from app.dependencies import RepoGroupDep
 from app.schema.admin import AdminDiscountUpdateIn
-from app.schema.api import ApiResponse, Discount, PaginatedOut, PaginatedParams
+from app.schema.api import AddDiscountIn, ApiResponse, Discount, PaginatedOut, PaginatedParams
+from app.service import discount as discount_service
 from app.service.admin import discount as admin_discount
 
 router = APIRouter()
+
+
+@router.post("", status_code=status.HTTP_201_CREATED)
+async def create_discount(
+    repos: RepoGroupDep,
+    discount_request: AddDiscountIn,
+) -> ApiResponse[Discount]:
+    """Create a new discount.
+
+    Discount=0 can be used to override existing discount.
+    Discount=1 renders all the services free.
+    """
+    result = await discount_service.create_discount(repos, discount_request)
+    return ApiResponse[Discount](
+        message="Discount created",
+        data=Discount.model_validate(result, from_attributes=True),
+    )
 
 
 @router.get("")

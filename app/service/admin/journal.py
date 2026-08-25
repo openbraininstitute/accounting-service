@@ -6,7 +6,6 @@ from uuid import UUID
 
 from app.constants import TransactionType
 from app.db.model import Journal
-from app.errors import ApiError, ApiErrorCode
 from app.repository.group import RepositoryGroup
 from app.schema.admin import AdminJournalOut, AdminLedgerEntryOut
 from app.schema.api import PaginatedParams
@@ -53,11 +52,6 @@ async def get_journal(
     transaction_before: datetime | None = None,
 ) -> tuple[list[AdminJournalOut], int]:
     """Return a page of journal entries with their ledger sides, newest first."""
-    if transaction_after and transaction_before and transaction_after >= transaction_before:
-        raise ApiError(
-            message="transaction_after must be before transaction_before",
-            error_code=ApiErrorCode.INVALID_REQUEST,
-        )
     journals, count = await repos.ledger.get_journal_page(
         pagination,
         account_id=account_id,

@@ -27,11 +27,6 @@ async def list_jobs(
     started_before: datetime | None = None,
 ) -> tuple[Sequence[Job], int]:
     """Return a page of jobs, newest first."""
-    if started_after and started_before and started_after >= started_before:
-        raise ApiError(
-            message="started_after must be before started_before",
-            error_code=ApiErrorCode.INVALID_REQUEST,
-        )
     return await repos.job.list_jobs(
         pagination,
         vlab_id=vlab_id,

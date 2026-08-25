@@ -6,20 +6,9 @@ from uuid import UUID
 
 from sqlalchemy import Row
 
-from app.errors import ApiError, ApiErrorCode, ensure_result
+from app.errors import ensure_result
 from app.repository.group import RepositoryGroup
 from app.schema.api import PaginatedParams
-
-
-def _check_started_interval(
-    started_after: datetime | None, started_before: datetime | None
-) -> None:
-    """Raise an error if the given interval is empty."""
-    if started_after and started_before and started_after >= started_before:
-        raise ApiError(
-            message="started_after must be before started_before",
-            error_code=ApiErrorCode.INVALID_REQUEST,
-        )
 
 
 async def get_report_for_system(
@@ -30,7 +19,6 @@ async def get_report_for_system(
     started_before: datetime | None = None,
 ) -> tuple[Sequence[Row], int]:
     """Return the job report for the full system."""
-    _check_started_interval(started_after, started_before)
     return await repos.report.get_job_reports(
         pagination=pagination, started_after=started_after, started_before=started_before
     )
@@ -45,7 +33,6 @@ async def get_report_for_vlab(
     started_before: datetime | None = None,
 ) -> tuple[Sequence[Row], int]:
     """Return the job report for a given virtual-lab."""
-    _check_started_interval(started_after, started_before)
     with ensure_result(error_message="Virtual lab not found"):
         vlab_account = await repos.account.get_vlab_account(vlab_id=vlab_id)
     return await repos.report.get_job_reports(
@@ -65,7 +52,6 @@ async def get_report_for_project(
     started_before: datetime | None = None,
 ) -> tuple[Sequence[Row], int]:
     """Return the job report for a given project, including the reserved amount."""
-    _check_started_interval(started_after, started_before)
     with ensure_result(error_message="Project not found"):
         proj_account = await repos.account.get_proj_account(proj_id=proj_id)
     return await repos.report.get_job_reports(

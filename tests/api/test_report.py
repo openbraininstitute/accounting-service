@@ -170,5 +170,13 @@ async def test_get_report_date_filters(api_client):
         "/report/system",
         params={"started_after": now.isoformat(), "started_before": now.isoformat()},
     )
-    assert response.status_code == 400, response.text
+    assert response.status_code == 422, response.text
+    assert response.json()["error_code"] == "INVALID_REQUEST"
+
+
+@pytest.mark.usefixtures("_db_ledger")
+async def test_get_report_unknown_query_param(api_client):
+    response = await api_client.get("/report/system", params={"started_at": "2025-01-01T00:00:00Z"})
+
+    assert response.status_code == 422, response.text
     assert response.json()["error_code"] == "INVALID_REQUEST"

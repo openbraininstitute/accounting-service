@@ -118,7 +118,7 @@ async def _charge_generic(
             debited_from=accounts.sys.id,
             credited_to=accounts.proj.id,
             transaction_datetime=params.transaction_datetime,
-            transaction_type=TransactionType.REFUND,
+            transaction_type=TransactionType.OVERCHARGE_REFUND,
             job_id=job.id,
             price_id=price.id,
             discount_id=discount_id,

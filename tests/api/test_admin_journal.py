@@ -51,7 +51,7 @@ async def test_get_journal_transaction_type_filter(api_client):
     assert response.status_code == 200, response.text
     assert response.json()["data"]["meta"]["total_items"] == 2
 
-    response = await api_client.get("/admin/journal", params={"transaction_type": "refund"})
+    response = await api_client.get("/admin/journal", params={"transaction_type": "manual-refund"})
     assert response.status_code == 200, response.text
     assert response.json()["data"]["meta"]["total_items"] == 0
 
@@ -88,7 +88,7 @@ async def test_get_journal_datetime_filters(api_client):
             "transaction_before": (now - timedelta(hours=1)).isoformat(),
         },
     )
-    assert response.status_code == 400, response.text
+    assert response.status_code == 422, response.text
     assert response.json()["error_code"] == "INVALID_REQUEST"
 
 

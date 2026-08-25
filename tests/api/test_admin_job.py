@@ -107,7 +107,7 @@ async def test_get_jobs_datetime_filters(api_client):
             "started_before": (now - timedelta(hours=1)).isoformat(),
         },
     )
-    assert response.status_code == 400, response.text
+    assert response.status_code == 422, response.text
     assert response.json()["error_code"] == "INVALID_REQUEST"
 
 

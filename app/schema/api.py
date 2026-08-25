@@ -36,6 +36,37 @@ class PaginatedParams(BaseModel):
     page_size: Annotated[int, Field(strict=True, ge=1)]
 
 
+class PaginationQueryParams(BaseModel):
+    """Pagination query parameters, to be used in a query parameters model."""
+
+    page: Annotated[int, Field(ge=1)] = 1
+    page_size: Annotated[int, Field(ge=1)] = 1000
+
+    @property
+    def pagination(self) -> PaginatedParams:
+        """The corresponding PaginatedParams."""
+        return PaginatedParams(page=self.page, page_size=self.page_size)
+
+
+class StartedIntervalQueryParams(BaseModel):
+    """Query parameters filtering by the interval when a job started."""
+
+    started_after: AwareDatetime | None = None
+    started_before: AwareDatetime | None = None
+
+    @model_validator(mode="after")
+    def check_started_interval(self) -> Self:
+        """Check that the interval is not empty."""
+        if self.started_after and self.started_before and self.started_after >= self.started_before:
+            err = "started_after must be before started_before"
+            raise ValueError(err)
+        return self
+
+
+class ReportQueryParams(PaginationQueryParams, StartedIntervalQueryParams):
+    """Query parameters of the report endpoints."""
+
+
 class PaginatedMeta(BaseModel):
     """PaginatedMeta."""
 

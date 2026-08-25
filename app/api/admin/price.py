@@ -3,16 +3,30 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, status
 from starlette.requests import Request
 
 from app.constants import ServiceSubtype, ServiceType
 from app.dependencies import RepoGroupDep
 from app.schema.admin import AdminPriceExpireIn, AdminPriceOut
-from app.schema.api import AddPriceIn, ApiResponse, PaginatedOut, PaginatedParams
+from app.schema.api import AddPriceIn, AddPriceOut, ApiResponse, PaginatedOut, PaginatedParams
+from app.service import price as price_service
 from app.service.admin import price as admin_price
 
 router = APIRouter()
+
+
+@router.post("", status_code=status.HTTP_201_CREATED)
+async def add_price(
+    repos: RepoGroupDep,
+    price_request: AddPriceIn,
+) -> ApiResponse[AddPriceOut]:
+    """Add a new price."""
+    result = await price_service.add_price(repos, price_request)
+    return ApiResponse[AddPriceOut](
+        message="Price added",
+        data=AddPriceOut.model_validate(result, from_attributes=True),
+    )
 
 
 @router.get("")
@@ -80,7 +94,7 @@ async def update_price(
     """Replace a price and its tiers.
 
     Only prices valid in the future and not referenced by any journal entry can
-    be updated. To change an active price, add a new price with `POST /price`
+    be updated. To change an active price, add a new price with `POST /admin/price`
     and a future `valid_from`, then expire the old price at that same instant.
     """
     result = await admin_price.update_price(repos, price_id, price_request)

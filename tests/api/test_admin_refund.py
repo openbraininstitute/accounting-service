@@ -4,7 +4,7 @@ import pytest
 import sqlalchemy as sa
 
 from app.constants import TransactionType
-from app.db.model import Account, Journal
+from app.db.model import Account, Job, Journal
 
 from tests.constants import PROJ_ID, SYS_ID, UUIDS, VLAB_ID
 
@@ -37,9 +37,65 @@ async def test_refund_job(api_client, db):
     journal = (
         await db.execute(sa.select(Journal).where(Journal.id == data["journal_id"]))
     ).scalar_one()
-    assert journal.transaction_type == TransactionType.REFUND
+    assert journal.transaction_type == TransactionType.MANUAL_REFUND
     assert journal.job_id == UUIDS.JOB[0]
     assert journal.properties == {"reason": "admin_refund", "comment": "goodwill"}
+
+
+@pytest.mark.usefixtures("_db_ledger")
+async def test_refund_job_without_amount(api_client, db):
+    # the job was charged 0.015 in total
+    response = await api_client.post("/admin/refund", json={"job_id": str(UUIDS.JOB[0])})
+
+    assert response.status_code == 200, response.text
+    data = response.json()["data"]
+    assert data["amount"] == "0.02"  # 0.015 rounded for display only
+
+    assert await _get_balance(db, PROJ_ID) == Decimal("400.015")
+    assert await _get_balance(db, SYS_ID) == Decimal("-3000.015")
+
+    journal = (
+        await db.execute(sa.select(Journal).where(Journal.id == data["journal_id"]))
+    ).scalar_one()
+    assert journal.transaction_type == TransactionType.MANUAL_REFUND
+    assert journal.properties == {"reason": "admin_refund"}
+
+
+@pytest.mark.usefixtures("_db_ledger")
+async def test_refund_job_already_fully_refunded(api_client):
+    response = await api_client.post("/admin/refund", json={"job_id": str(UUIDS.JOB[0])})
+    assert response.status_code == 200, response.text
+
+    response = await api_client.post("/admin/refund", json={"job_id": str(UUIDS.JOB[0])})
+    assert response.status_code == 400, response.text
+    error = response.json()
+    assert error["error_code"] == "INVALID_REQUEST"
+    assert error["details"] == {"refundable": "0"}
+
+
+@pytest.mark.usefixtures("_db_ledger")
+async def test_refund_running_job(api_client, db):
+    await db.execute(
+        sa.update(Job).values(finished_at=None, cancelled_at=None).where(Job.id == UUIDS.JOB[0])
+    )
+    await db.commit()
+
+    response = await api_client.post("/admin/refund", json={"job_id": str(UUIDS.JOB[0])})
+
+    assert response.status_code == 400, response.text
+    assert response.json()["error_code"] == "JOB_NOT_FINISHED"
+
+
+@pytest.mark.usefixtures("_db_ledger")
+async def test_refund_job_with_pending_charge(api_client, db):
+    # a finished oneshot job with last_charged_at unset is still to be charged
+    await db.execute(sa.update(Job).values(last_charged_at=None).where(Job.id == UUIDS.JOB[0]))
+    await db.commit()
+
+    response = await api_client.post("/admin/refund", json={"job_id": str(UUIDS.JOB[0])})
+
+    assert response.status_code == 400, response.text
+    assert response.json()["error_code"] == "JOB_NOT_FINISHED"
 
 
 @pytest.mark.usefixtures("_db_ledger")
