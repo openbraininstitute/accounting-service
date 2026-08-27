@@ -80,7 +80,7 @@ def _create_budget(client, url):
 
 def _create_prices(client, url):
     client.post(
-        f"{url}/price",
+        f"{url}/admin/price",
         json={
             "service_type": "oneshot",
             "service_subtype": "ml-llm",

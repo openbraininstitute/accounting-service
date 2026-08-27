@@ -5,11 +5,12 @@ from typing import Any
 from uuid import UUID
 
 import sqlalchemy as sa
-from sqlalchemy import null, or_
+from sqlalchemy import func, null, or_, true
 
 from app import utils
-from app.db.model import Discount
+from app.db.model import Discount, Journal
 from app.repository.base import BaseRepository
+from app.schema.api import PaginatedParams
 
 
 class DiscountRepository(BaseRepository):
@@ -60,6 +61,47 @@ class DiscountRepository(BaseRepository):
             .order_by(Discount.valid_from.desc(), Discount.id.desc())
         )
         return (await self.db.execute(query)).scalars().all()
+
+    async def get_discount(self, discount_id: int) -> Discount | None:
+        """Return the discount with the given id, or None if missing."""
+        query = sa.select(Discount).where(Discount.id == discount_id)
+        return (await self.db.execute(query)).scalar_one_or_none()
+
+    async def list_discounts(
+        self,
+        pagination: PaginatedParams,
+        *,
+        vlab_id: UUID | None = None,
+    ) -> tuple[Sequence[Discount], int]:
+        """Return a page of discounts and the total count, newest first."""
+        where_clauses = [(Discount.vlab_id == vlab_id) if vlab_id is not None else true()]
+        count_query = sa.select(func.count()).select_from(Discount).where(*where_clauses)
+        count = (await self.db.execute(count_query)).scalar_one()
+        query = (
+            sa.select(Discount)
+            .where(*where_clauses)
+            .order_by(Discount.valid_from.desc(), Discount.id.desc())
+            .limit(pagination.page_size)
+            .offset(pagination.page_size * (pagination.page - 1))
+        )
+        rows = (await self.db.execute(query)).scalars().all()
+        return rows, count
+
+    async def has_journal_references(self, discount_id: int) -> bool:
+        """Return True if any journal entry references the given discount."""
+        query = sa.select(sa.exists().where(Journal.discount_id == discount_id))
+        return (await self.db.execute(query)).scalar_one()
+
+    async def update_discount(self, discount_id: int, data: dict[str, Any]) -> Discount:
+        """Update the given fields of a discount and return the updated row."""
+        query = (
+            sa.update(Discount).values(data).where(Discount.id == discount_id).returning(Discount)
+        )
+        return (await self.db.execute(query)).scalar_one()
+
+    async def delete_discount(self, discount_id: int) -> None:
+        """Delete the discount with the given id."""
+        await self.db.execute(sa.delete(Discount).where(Discount.id == discount_id))
 
     async def create_discount(self, data: dict[str, Any]) -> Discount:
         """Create a new discount record in the database.

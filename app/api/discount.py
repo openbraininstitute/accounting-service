@@ -7,27 +7,10 @@ from fastapi import APIRouter, status
 
 from app.dependencies import RepoGroupDep
 from app.errors import ApiError, ApiErrorCode
-from app.schema.api import AddDiscountIn, ApiResponse, Discount
+from app.schema.api import ApiResponse, Discount
 from app.service import discount
 
 router = APIRouter()
-
-
-@router.post("", status_code=status.HTTP_201_CREATED)
-async def create_discount(
-    repos: RepoGroupDep,
-    discount_request: AddDiscountIn,
-) -> ApiResponse[Discount]:
-    """Create a new discount.
-
-    Discount=0 can be used to override existing discount.
-    Discount=1 renders all the services free.
-    """
-    result = await discount.create_discount(repos, discount_request)
-    return ApiResponse[Discount](
-        message="Discount created",
-        data=Discount.model_validate(result, from_attributes=True),
-    )
 
 
 @router.get("/virtual-lab/{vlab_id}", status_code=status.HTTP_200_OK)

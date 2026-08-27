@@ -28,7 +28,7 @@ async def test_estimate_oneshot_cost_with_fixed_cost(api_client):
     price_data = make_price_data(
         tiers=[{**DEFAULT_PRICE_TIER, "fixed_cost": "2.5"}],
     )
-    await api_client.post("/price", json=price_data)
+    await api_client.post("/admin/price", json=price_data)
 
     request_payload = {
         "proj_id": PROJ_ID,
@@ -52,7 +52,7 @@ async def test_estimate_oneshot_cost_with_discount(api_client):
         "valid_from": "2024-01-01T00:00:00Z",
         "valid_to": None,
     }
-    await api_client.post("/discount", json=discount_data)
+    await api_client.post("/admin/discount", json=discount_data)
 
     request_payload = {
         "proj_id": PROJ_ID,
@@ -73,7 +73,7 @@ async def test_estimate_oneshot_cost_with_discount_and_fixed_cost(api_client):
     price_data = make_price_data(
         tiers=[{**DEFAULT_PRICE_TIER, "fixed_cost": "2.0"}],
     )
-    await api_client.post("/price", json=price_data)
+    await api_client.post("/admin/price", json=price_data)
 
     discount_data = {
         "vlab_id": VLAB_ID,
@@ -81,7 +81,7 @@ async def test_estimate_oneshot_cost_with_discount_and_fixed_cost(api_client):
         "valid_from": "2024-01-01T00:00:00Z",
         "valid_to": None,
     }
-    await api_client.post("/discount", json=discount_data)
+    await api_client.post("/admin/discount", json=discount_data)
 
     request_payload = {
         "proj_id": PROJ_ID,

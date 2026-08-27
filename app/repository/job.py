@@ -11,6 +11,7 @@ from sqlalchemy.dialects import postgresql as pg
 from app.constants import ServiceSubtype, ServiceType
 from app.db.model import Job
 from app.repository.base import BaseRepository
+from app.schema.admin import AdminJobStatus
 from app.schema.domain import StartedJob
 
 if TYPE_CHECKING:
@@ -168,6 +169,60 @@ class JobRepository(BaseRepository):
         )
         rows = (await self.db.execute(jobs_query)).scalars().all()
         return list(rows), count
+
+    async def list_jobs(
+        self,
+        pagination: PaginatedParams,
+        *,
+        vlab_id: UUID | None = None,
+        proj_id: UUID | None = None,
+        service_type: ServiceType | None = None,
+        service_subtype: ServiceSubtype | None = None,
+        status: AdminJobStatus | None = None,
+        started_after: datetime | None = None,
+        started_before: datetime | None = None,
+    ) -> tuple[Sequence[Job], int]:
+        """Return a page of jobs and the total count, newest first."""
+        match status:
+            case AdminJobStatus.OPEN:
+                status_clause = sa.and_(Job.finished_at == null(), Job.cancelled_at == null())
+            case AdminJobStatus.FINISHED:
+                status_clause = Job.finished_at != null()
+            case AdminJobStatus.CANCELLED:
+                status_clause = Job.cancelled_at != null()
+            case None:
+                status_clause = true()
+        where_clauses = [
+            (Job.vlab_id == vlab_id) if vlab_id is not None else true(),
+            (Job.proj_id == proj_id) if proj_id is not None else true(),
+            (Job.service_type == service_type) if service_type is not None else true(),
+            (Job.service_subtype == service_subtype) if service_subtype is not None else true(),
+            status_clause,
+            (Job.started_at >= started_after) if started_after else true(),
+            (Job.started_at < started_before) if started_before else true(),
+        ]
+        count_query = sa.select(func.count()).select_from(Job).where(*where_clauses)
+        count = (await self.db.execute(count_query)).scalar_one()
+        query = (
+            sa.select(Job)
+            .where(*where_clauses)
+            .order_by(Job.created_at.desc(), Job.id)
+            .limit(pagination.page_size)
+            .offset(pagination.page_size * (pagination.page - 1))
+        )
+        rows = (await self.db.execute(query)).scalars().all()
+        return rows, count
+
+    async def get_open_job_ids(self, *, account_ids: Sequence[UUID]) -> list[UUID]:
+        """Return the ids of the open jobs charging any of the given vlab/proj accounts."""
+        if not account_ids:
+            return []
+        query = sa.select(Job.id).where(
+            or_(Job.vlab_id.in_(account_ids), Job.proj_id.in_(account_ids)),
+            Job.finished_at == null(),
+            Job.cancelled_at == null(),
+        )
+        return list((await self.db.execute(query)).scalars().all())
 
     async def get_oneshot_to_be_charged(
         self, *, proj_ids: list[UUID] | None = None
