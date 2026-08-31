@@ -104,6 +104,8 @@ class ServiceSubtype(HyphenStrEnum):
     # } end of `CircuitScale`
     # `obi-one` via `launch-system`: Circuit Extraction
     CIRCUIT_EXTRACTION = auto()
+    # `obi-one` via `launch-system`: Circuit Simplification
+    CIRCUIT_SIMPLIFICATION = auto()
     EM_SYNAPSE_MAPPING = auto()
     BRIAN2_CIRCUIT_SIMULATION = auto()
 
