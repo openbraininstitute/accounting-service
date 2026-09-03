@@ -108,6 +108,10 @@ class ServiceSubtype(HyphenStrEnum):
     CIRCUIT_SIMPLIFICATION = auto()
     EM_SYNAPSE_MAPPING = auto()
     BRIAN2_CIRCUIT_SIMULATION = auto()
+    # `obi-one` via `launch-system`: E-model building pipeline
+    EMODEL_FEATURES_EXTRACTION = auto()
+    EMODEL_OPTIMISATION = auto()
+    EMODEL_VALIDATION = auto()
 
     # These are deprecated and should not be used any more
     ML_RAG = auto()
