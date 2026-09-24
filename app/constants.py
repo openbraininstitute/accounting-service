@@ -112,6 +112,9 @@ class ServiceSubtype(HyphenStrEnum):
     EMODEL_FEATURES_EXTRACTION = auto()
     EMODEL_OPTIMISATION = auto()
     EMODEL_VALIDATION = auto()
+    # `obi-one` via `launch-system`: Synapse parameterization (circuit synaptic physiology)
+    SYNAPSE_PARAMETERIZATION_SMALL = auto()
+    SYNAPSE_PARAMETERIZATION_LARGE = auto()
 
     # These are deprecated and should not be used any more
     ML_RAG = auto()
