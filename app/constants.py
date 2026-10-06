@@ -78,6 +78,8 @@ class ServiceSubtype(HyphenStrEnum):
     ION_CHANNEL_SIM = auto()
     # `neuroagent`; Used for `qa` chat agent
     ML_LLM = auto()
+    # `notebook-service`: MCP sandbox session
+    MCP = auto()
     NEURON_MESH_SKELETONIZATION = auto()
     # `notebook-service`: Currently running notebook
     NOTEBOOK = auto()

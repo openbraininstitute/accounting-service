@@ -1,8 +1,24 @@
+from uuid import UUID
+
 import pytest
 
 from app.constants import ServiceSubtype, ServiceType
+from app.schema.api import MakeLongrunReservationIn
 
 from tests.constants import GROUP_ID, PROJ_ID, USER_ID
+
+
+def test_mcp_subtype_is_accepted():
+    request = MakeLongrunReservationIn(
+        proj_id=UUID(PROJ_ID),
+        user_id=UUID(USER_ID),
+        type=ServiceType.LONGRUN,
+        subtype="mcp",
+        duration=1,
+        instances=1,
+    )
+
+    assert request.subtype is ServiceSubtype.MCP
 
 
 @pytest.mark.usefixtures("_db_account", "_db_price")
