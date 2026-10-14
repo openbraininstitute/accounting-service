@@ -3,7 +3,7 @@ from uuid import UUID
 import pytest
 
 from app.constants import ServiceSubtype, ServiceType
-from app.schema.api import MakeLongrunReservationIn
+from app.schema.api import MakeLongrunReservationIn, MakeOneshotReservationIn
 
 from tests.constants import GROUP_ID, PROJ_ID, USER_ID
 
@@ -19,6 +19,18 @@ def test_mcp_subtype_is_accepted():
     )
 
     assert request.subtype is ServiceSubtype.MCP
+
+
+def test_extracellular_recording_array_build_subtype_is_accepted():
+    request = MakeOneshotReservationIn(
+        proj_id=UUID(PROJ_ID),
+        user_id=UUID(USER_ID),
+        type=ServiceType.ONESHOT,
+        subtype="extracellular-recording-array-build",
+        count=1,
+    )
+
+    assert request.subtype is ServiceSubtype.EXTRACELLULAR_RECORDING_ARRAY_BUILD
 
 
 @pytest.mark.usefixtures("_db_account", "_db_price")

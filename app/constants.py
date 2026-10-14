@@ -117,6 +117,8 @@ class ServiceSubtype(HyphenStrEnum):
     # `obi-one` via `launch-system`: Synapse parameterization (circuit synaptic physiology)
     SYNAPSE_PARAMETERIZATION_SMALL = auto()
     SYNAPSE_PARAMETERIZATION_LARGE = auto()
+    # `obi-one` via `launch-system`: Extracellular recording array build (electrode weights)
+    EXTRACELLULAR_RECORDING_ARRAY_BUILD = auto()
 
     # These are deprecated and should not be used any more
     ML_RAG = auto()
