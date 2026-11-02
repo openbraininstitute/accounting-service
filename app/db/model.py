@@ -139,7 +139,7 @@ class Price(Base):
     created_at: Mapped[CREATED_AT]
     updated_at: Mapped[UPDATED_AT]
 
-    tiers: Mapped[list["PriceTier"]] = relationship(
+    tiers: Mapped[list[PriceTier]] = relationship(
         order_by="PriceTier.min_quantity", lazy="selectin"
     )
 

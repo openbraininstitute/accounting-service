@@ -38,21 +38,21 @@ class InterceptHandler(logging.Handler):
         L.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
 
 
-def json_formatter(record: "loguru.Record") -> str:
+def json_formatter(record: loguru.Record) -> str:
     """Format a log record including only a subset of fields.
 
     Return the string to be formatted, not the actual message to be logged.
     See https://loguru.readthedocs.io/en/stable/resources/recipes.html.
     """
 
-    def _format_exception(ex: "loguru.RecordException") -> dict[str, str | None]:
+    def _format_exception(ex: loguru.RecordException) -> dict[str, str | None]:
         return {
             "type": ex.type.__name__ if ex.type else None,
             "value": str(ex.value) if ex.value else None,
             "traceback": "".join(traceback.format_exception(ex.type, ex.value, ex.traceback)),
         }
 
-    def _serialize(rec: "loguru.Record") -> str:
+    def _serialize(rec: loguru.Record) -> str:
         subset = {
             "time": rec["time"].isoformat(),
             "level": rec["level"].name,
@@ -67,7 +67,7 @@ def json_formatter(record: "loguru.Record") -> str:
     return "{extra[serialized]}\n"
 
 
-def str_formatter(record: "loguru.Record") -> str:
+def str_formatter(record: loguru.Record) -> str:
     """Format a log record including the extra parameters if present.
 
     Return the string to be formatted, not the actual message to be logged.

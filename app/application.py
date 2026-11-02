@@ -23,7 +23,7 @@ from app.schema.api import ErrorResponse
 
 
 @asynccontextmanager
-async def lifespan(_: FastAPI) -> AsyncGenerator[dict[str, Any], None]:
+async def lifespan(_: FastAPI) -> AsyncGenerator[dict[str, Any]]:
     """Execute actions on server startup and shutdown."""
     L.info(
         "Starting application [PID={}, CPU_COUNT={}, ENVIRONMENT={}]",

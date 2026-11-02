@@ -20,7 +20,7 @@ class CreateSQSClientProtocol(Protocol):
 @asynccontextmanager
 async def create_default_sqs_client(
     client_config: dict[str, Any] | None = None,
-) -> AsyncGenerator[AioBaseClient, None]:
+) -> AsyncGenerator[AioBaseClient]:
     """Return a new aiobotocore client.
 
     The client can handle multiple requests, and it should be created only when needed,

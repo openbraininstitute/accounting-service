@@ -18,7 +18,7 @@ async def _database_session_factory() -> AsyncIterator[AsyncSession]:
         yield session  # ruff: ignore[yield-in-context-manager-in-async-generator]
 
 
-def _repo_group(db: "SessionDep") -> RepositoryGroup:
+def _repo_group(db: SessionDep) -> RepositoryGroup:
     """Return the repository group, to be used as a dependency."""
     return RepositoryGroup(db=db)
 

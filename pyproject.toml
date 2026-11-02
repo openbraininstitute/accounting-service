@@ -20,7 +20,7 @@ dependencies = [
     "sqlalchemy[asyncio]",
     "uvicorn[standard]",
 ]
-requires-python = "==3.12.*"
+requires-python = "==3.14.*"
 readme = "README.md"
 license = {text = "Apache-2.0"}
 
@@ -42,7 +42,7 @@ required-version = ">=0.8.0"
 
 [tool.ruff]
 line-length = 100
-target-version = "py312"
+target-version = "py314"
 
 [tool.ruff.lint]
 preview = true
@@ -63,6 +63,11 @@ ignore = [
     "line-contains-todo",  # Line contains TODO, consider resolving the issue
     "TD",      # TODOs
     "too-many-statements-in-try-clause", # Try clause contains too many statements
+    # FastAPI, Pydantic and SQLAlchemy evaluate annotations at runtime: with py314 lazy
+    # annotations these rules would suggest TYPE_CHECKING-only imports that break the app
+    "typing-only-first-party-import",  # TC001
+    "typing-only-third-party-import",  # TC002
+    "typing-only-standard-library-import",  # TC003
     ### TODO: remove rules temporarily ignored
     "docstring-missing-returns",  # `return` is not documented in docstring
     "docstring-missing-yields",  # `yield` is not documented in docstring
