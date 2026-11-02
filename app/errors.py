@@ -1,7 +1,7 @@
 """Api exceptions."""
 
 import dataclasses
-from collections.abc import Iterator
+from collections.abc import Generator
 from contextlib import contextmanager
 from enum import auto
 from http import HTTPStatus
@@ -57,7 +57,9 @@ class EventError(Exception):
 
 
 @contextmanager
-def ensure_result(error_message: str, http_status_code: HTTPStatus | None = None) -> Iterator[None]:
+def ensure_result(
+    error_message: str, http_status_code: HTTPStatus | None = None
+) -> Generator[None, None, None]:
     """Context manager that raises ApiError when no results are found after executing a query."""
     try:
         yield

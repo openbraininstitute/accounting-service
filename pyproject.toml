@@ -30,7 +30,7 @@ dev = [
     "httpx",
     "mypy",
     "pytest",
-    "pytest-asyncio<0.22",  # https://github.com/pytest-dev/pytest-asyncio/issues/706
+    "pytest-asyncio>=0.24",
     "pytest-cov",
     "pytest-loguru",
     "ruff",
@@ -89,6 +89,7 @@ combine-as-imports = true
     "magic-value-comparison", # magic value (constant) used in comparison (i.e. expected == 3)
     "assert",    # Use of `assert` detected
     "private-member-access",  # private member access
+    "pytest-fixture-autouse",  # `autouse=True` in `pytest.fixture` (intentional for test setup/cleanup)
 ]
 "scripts/*.py" = [
     "ALL",
@@ -123,6 +124,8 @@ addopts = [
     "--durations-min=1.0",
 ]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
 testpaths = [
     "tests",
 ]

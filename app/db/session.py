@@ -1,6 +1,6 @@
 """Database session utils."""
 
-from collections.abc import AsyncIterator, Callable
+from collections.abc import AsyncGenerator, Callable
 from contextlib import AbstractAsyncContextManager, asynccontextmanager
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
@@ -35,7 +35,7 @@ class DatabaseSessionManager:
         L.info("DB engine has been closed")
 
     @asynccontextmanager
-    async def session(self) -> AsyncIterator[AsyncSession]:
+    async def session(self) -> AsyncGenerator[AsyncSession, None]:
         """Yield a new database session."""
         if not self._engine:
             err = "DB engine not initialized"

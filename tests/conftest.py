@@ -1,4 +1,3 @@
-import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
@@ -35,13 +34,6 @@ from tests.constants import (
     VLAB_ID,
 )
 from tests.utils import truncate_tables
-
-
-@pytest.fixture(scope="session")
-def event_loop():
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
 
 
 @pytest.fixture(scope="session", autouse=True)
