@@ -35,7 +35,7 @@ class DatabaseSessionManager:
         L.info("DB engine has been closed")
 
     @asynccontextmanager
-    async def session(self) -> AsyncGenerator[AsyncSession, None]:
+    async def session(self) -> AsyncGenerator[AsyncSession]:
         """Yield a new database session."""
         if not self._engine:
             err = "DB engine not initialized"

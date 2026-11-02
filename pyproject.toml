@@ -20,7 +20,7 @@ dependencies = [
     "sqlalchemy[asyncio]",
     "uvicorn[standard]",
 ]
-requires-python = "==3.12.*"
+requires-python = "==3.14.*"
 readme = "README.md"
 license = {text = "Apache-2.0"}
 
@@ -42,7 +42,7 @@ required-version = ">=0.8.0"
 
 [tool.ruff]
 line-length = 100
-target-version = "py312"
+target-version = "py314"
 
 [tool.ruff.lint]
 preview = true
@@ -63,6 +63,11 @@ ignore = [
     "line-contains-todo",  # Line contains TODO, consider resolving the issue
     "TD",      # TODOs
     "too-many-statements-in-try-clause", # Try clause contains too many statements
+    # Under py314 lazy annotations these move runtime-needed imports into TYPE_CHECKING blocks.
+    # Blanket (not runtime-evaluated-base-classes) because ruff can't match FastAPI's @router.get.
+    "typing-only-first-party-import",  # TC001
+    "typing-only-third-party-import",  # TC002
+    "typing-only-standard-library-import",  # TC003
     ### TODO: remove rules temporarily ignored
     "docstring-missing-returns",  # `return` is not documented in docstring
     "docstring-missing-yields",  # `yield` is not documented in docstring
@@ -93,6 +98,10 @@ combine-as-imports = true
 ]
 "scripts/*.py" = [
     "ALL",
+]
+"app/logger.py" = [
+    # loguru.Record/RecordException are stub-only (no runtime attr): annotations must stay quoted
+    "quoted-annotation",  # Remove quotes from type annotation
 ]
 
 [tool.ruff.lint.pydocstyle]

@@ -1,8 +1,8 @@
 """Job message repository module."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
+from collections.abc import Sequence
+from datetime import datetime
+from uuid import UUID
 
 import sqlalchemy as sa
 from sqlalchemy import func, null, or_, true
@@ -12,14 +12,8 @@ from app.constants import ServiceSubtype, ServiceType
 from app.db.model import Job
 from app.repository.base import BaseRepository
 from app.schema.admin import AdminJobStatus
+from app.schema.api import PaginatedParams
 from app.schema.domain import StartedJob
-
-if TYPE_CHECKING:
-    from collections.abc import Sequence
-    from datetime import datetime
-    from uuid import UUID
-
-    from app.schema.api import PaginatedParams
 
 
 class JobRepository(BaseRepository):
