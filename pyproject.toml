@@ -63,8 +63,8 @@ ignore = [
     "line-contains-todo",  # Line contains TODO, consider resolving the issue
     "TD",      # TODOs
     "too-many-statements-in-try-clause", # Try clause contains too many statements
-    # FastAPI, Pydantic and SQLAlchemy evaluate annotations at runtime: with py314 lazy
-    # annotations these rules would suggest TYPE_CHECKING-only imports that break the app
+    # Under py314 lazy annotations these move runtime-needed imports into TYPE_CHECKING blocks.
+    # Blanket (not runtime-evaluated-base-classes) because ruff can't match FastAPI's @router.get.
     "typing-only-first-party-import",  # TC001
     "typing-only-third-party-import",  # TC002
     "typing-only-standard-library-import",  # TC003
