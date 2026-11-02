@@ -44,7 +44,7 @@ def event_loop():
     loop.close()
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="session", autouse=True)  # ruff: ignore[pytest-fixture-autouse]
 async def _database_context():
     database_session_manager.initialize(
         url=settings.DB_URI,
@@ -60,7 +60,7 @@ async def db() -> AsyncIterator[AsyncSession]:
         yield session
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(autouse=True)  # ruff: ignore[pytest-fixture-autouse]
 async def _db_cleanup(db):
     yield
     await db.rollback()

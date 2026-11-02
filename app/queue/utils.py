@@ -1,6 +1,6 @@
 """Queue utils."""
 
-from collections.abc import AsyncIterator
+from collections.abc import AsyncGenerator
 from contextlib import AbstractAsyncContextManager, asynccontextmanager
 from typing import Any, Protocol
 
@@ -20,7 +20,7 @@ class CreateSQSClientProtocol(Protocol):
 @asynccontextmanager
 async def create_default_sqs_client(
     client_config: dict[str, Any] | None = None,
-) -> AsyncIterator[AioBaseClient]:
+) -> AsyncGenerator[AioBaseClient, None]:
     """Return a new aiobotocore client.
 
     The client can handle multiple requests, and it should be created only when needed,
