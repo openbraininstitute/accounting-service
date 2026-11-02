@@ -145,6 +145,9 @@ omit = [
     "__main__.py",
 ]
 
+[tool.coverage.xml]
+output = "coverage/coverage.xml"
+
 [tool.mypy]
 show_error_codes = true
 ignore_missing_imports = true
