@@ -99,6 +99,10 @@ combine-as-imports = true
 "scripts/*.py" = [
     "ALL",
 ]
+"app/logger.py" = [
+    # loguru.Record/RecordException are stub-only (no runtime attr): annotations must stay quoted
+    "quoted-annotation",  # Remove quotes from type annotation
+]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
