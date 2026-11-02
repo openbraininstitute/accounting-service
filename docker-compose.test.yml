@@ -2,6 +2,7 @@ services:
   test:
     profiles: [test]
     image: "${IMAGE_NAME}:${IMAGE_TAG}"
+    user: root
     command:
     - sh
     - -cx
@@ -18,6 +19,7 @@ services:
     - AWS_ENDPOINT_URL=http://queue:9324
     volumes:
     - ./tests:/code/tests
+    - ./coverage:/code/coverage
     depends_on:
       db-test:
         condition: service_healthy
