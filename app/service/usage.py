@@ -13,12 +13,10 @@ def calculate_longrun_usage_value(
     instance_type: str | None,
     duration: float,
 ) -> int:
-    """Return the usage_value.
+    """Return the usage_value: instances * duration * weight.
 
-    The billed usage is instances * duration * weight, where weight comes from
-    settings.LONGRUN_INSTANCE_TYPE_WEIGHTS for the given instance_type. An
-    instance_type that is empty/None or not in the map uses a weight of 1, so
-    sizes without a configured weight bill the same as before.
+    The weight comes from settings.LONGRUN_INSTANCE_TYPE_WEIGHTS for the given
+    instance_type; an empty/None or unmapped instance_type uses a weight of 1.
 
     Args:
         instances: number of instances.
