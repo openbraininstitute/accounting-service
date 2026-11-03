@@ -68,6 +68,18 @@ class Settings(BaseSettings):
     CHARGE_LONGRUN_MIN_CHARGING_AMOUNT: Decimal = Decimal("0.000001")
     # time since last_alive_at, after which the job is considered expired
     CHARGE_LONGRUN_EXPIRATION_INTERVAL: float = 3600
+    # Per-instance_type usage weight for longrun jobs. Billed usage is
+    # instances * duration * weight, so a larger size costs proportionally more
+    # for the same running time. Keys are the instance_type strings sent in the
+    # reservation/usage events (notebook session profile names). An instance_type
+    # absent from this map (or empty/None) uses a weight of 1.
+    # Tunable via env, e.g. LONGRUN_INSTANCE_TYPE_WEIGHTS__large=3.
+    LONGRUN_INSTANCE_TYPE_WEIGHTS: dict[str, Decimal] = {
+        "small": Decimal(1),
+        "medium": Decimal(2),
+        "large": Decimal(3),
+        "fullnode": Decimal(4),
+    }
 
     CHARGE_ONESHOT_LOOP_SLEEP: float = 600
     CHARGE_ONESHOT_ERROR_SLEEP: float = 60
