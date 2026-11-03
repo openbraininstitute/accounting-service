@@ -3,7 +3,7 @@
 from datetime import datetime
 
 from app.config import settings
-from app.logger import L
+from app.constants import D1
 from app.queue.session import SQSManager
 from app.schema.queue import LongrunEvent, OneshotEvent, StorageEvent
 
@@ -13,17 +13,21 @@ def calculate_longrun_usage_value(
     instance_type: str | None,
     duration: float,
 ) -> int:
-    """Return the usage_value.
+    """Return the usage_value: instances * duration * weight.
+
+    The weight comes from settings.LONGRUN_INSTANCE_TYPE_WEIGHTS for the given
+    instance_type; an empty/None or unmapped instance_type uses a weight of 1.
 
     Args:
         instances: number of instances.
         instance_type: type of instance.
         duration: duration in seconds.
     """
+    weight = D1
     if instance_type:
-        # TODO: consider instance_type?
-        L.warning("instance_type is ignored")
-    return int(instances * duration)
+        weight = settings.LONGRUN_INSTANCE_TYPE_WEIGHTS.get(instance_type, D1)
+    base_usage = int(instances * duration)
+    return int(base_usage * weight)
 
 
 def calculate_longrun_cumulative_usage(
