@@ -114,6 +114,8 @@ class ServiceSubtype(HyphenStrEnum):
     CIRCUIT_SIMPLIFICATION = auto()
     EM_SYNAPSE_MAPPING = auto()
     BRIAN2_CIRCUIT_SIMULATION = auto()
+    # `obi-one` via `launch-system`: NEST point-neuron circuit simulation
+    NEST_CIRCUIT_SIMULATION = auto()
     # `obi-one` via `launch-system`: E-model building pipeline
     EMODEL_FEATURES_EXTRACTION = auto()
     EMODEL_OPTIMISATION = auto()
