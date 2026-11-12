@@ -111,7 +111,9 @@ class ServiceSubtype(HyphenStrEnum):
     # `obi-one` via `launch-system`: Circuit Extraction
     CIRCUIT_EXTRACTION = auto()
     # `obi-one` via `launch-system`: Circuit Simplification
-    CIRCUIT_SIMPLIFICATION = auto()
+    CIRCUIT_SIMPLIFICATION_SMALL = auto()
+    CIRCUIT_SIMPLIFICATION_MEDIUM = auto()
+    CIRCUIT_SIMPLIFICATION_LARGE = auto()
     EM_SYNAPSE_MAPPING = auto()
     BRIAN2_CIRCUIT_SIMULATION = auto()
     # `obi-one` via `launch-system`: NEST point-neuron circuit simulation
