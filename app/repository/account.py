@@ -1,10 +1,11 @@
 """Account repository module."""
 
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from uuid import UUID
 
 import sqlalchemy as sa
 from sqlalchemy import and_, func, true
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import aliased
 
 from app.constants import AccountType
@@ -13,6 +14,14 @@ from app.repository.base import BaseRepository
 from app.schema.api import PaginatedParams
 from app.schema.domain import Accounts, ProjAccount, RsvAccount, SysAccount, VlabAccount
 from app.utils import create_uuid
+
+# map each account type to the corresponding field in the Accounts model
+_ACCOUNTS_FIELDS = {
+    AccountType.SYS: "sys",
+    AccountType.VLAB: "vlab",
+    AccountType.PROJ: "proj",
+    AccountType.RSV: "rsv",
+}
 
 
 class AccountRepository(BaseRepository):
@@ -24,19 +33,12 @@ class AccountRepository(BaseRepository):
         result = (await self.db.execute(query)).scalar_one()
         return SysAccount.model_validate(result)
 
-    async def _get_generic_account(
-        self,
-        account_id: UUID,
-        account_type: AccountType,
-        *,
-        for_update: bool = False,
-    ) -> Account:
-        """Return the account for the given account id and type.
+    async def _get_generic_account(self, account_id: UUID, account_type: AccountType) -> Account:
+        """Return the enabled account for the given account id and type.
 
         Args:
             account_id: account UUID.
             account_type: account type.
-            for_update: if True, locks the selected row against concurrent updates.
         """
         query = sa.select(Account).where(
             and_(
@@ -45,62 +47,56 @@ class AccountRepository(BaseRepository):
                 Account.enabled == true(),
             )
         )
-        if for_update:
-            query = query.with_for_update()
         return (await self.db.execute(query)).scalar_one()
 
-    async def get_vlab_account(self, vlab_id: UUID, *, for_update: bool = False) -> VlabAccount:
-        """Return the virtual lab account for the given virtual lab id.
-
-        Args:
-            vlab_id: virtual lab UUID.
-            for_update: if True, locks the selected row against concurrent updates.
-        """
-        result = await self._get_generic_account(
-            account_id=vlab_id, account_type=AccountType.VLAB, for_update=for_update
-        )
+    async def get_vlab_account(self, vlab_id: UUID) -> VlabAccount:
+        """Return the virtual lab account for the given virtual lab id."""
+        result = await self._get_generic_account(account_id=vlab_id, account_type=AccountType.VLAB)
         return VlabAccount.model_validate(result)
 
-    async def get_proj_account(self, proj_id: UUID, *, for_update: bool = False) -> ProjAccount:
-        """Return the project account for the given project id.
-
-        Args:
-            proj_id: project UUID.
-            for_update: if True, lock the selected row against concurrent updates.
-        """
-        result = await self._get_generic_account(
-            account_id=proj_id, account_type=AccountType.PROJ, for_update=for_update
-        )
+    async def get_proj_account(self, proj_id: UUID) -> ProjAccount:
+        """Return the project account for the given project id."""
+        result = await self._get_generic_account(account_id=proj_id, account_type=AccountType.PROJ)
         return ProjAccount.model_validate(result)
 
-    async def get_reservation_account(
-        self, proj_id: UUID, *, for_update: bool = False
-    ) -> RsvAccount:
-        """Return the reservation account for the given project id.
-
-        Args:
-            proj_id: project UUID.
-            for_update: if True, locks the selected row against concurrent updates.
-        """
-        rows = await self.get_reservation_accounts(proj_ids=[proj_id], for_update=for_update)
+    async def get_reservation_account(self, proj_id: UUID) -> RsvAccount:
+        """Return the reservation account for the given project id."""
+        rows = await self.get_reservation_accounts(proj_ids=[proj_id])
         return rows[0]
 
     async def get_accounts_by_proj_id(
         self, proj_id: UUID, *, for_update: set[AccountType] | None = None
     ) -> Accounts:
-        """Return the related VLAB, PROJ, and RSV accounts for the given proj_id."""
-        for_update = for_update or set()
-        proj = await self.get_proj_account(
-            proj_id=proj_id, for_update=AccountType.PROJ in for_update
-        )
-        rsv = await self.get_reservation_account(
-            proj_id=proj_id, for_update=AccountType.RSV in for_update
-        )
-        vlab = await self.get_vlab_account(
-            vlab_id=proj.vlab_id, for_update=AccountType.VLAB in for_update
-        )
+        """Return the related SYS, VLAB, PROJ, and RSV accounts for the given proj_id.
+
+        Args:
+            proj_id: project UUID.
+            for_update: types of the accounts to lock against concurrent updates.
+                The accounts are locked together with `lock_accounts`, and the returned
+                values (e.g. the balance) are read after acquiring the locks.
+        """
+        proj = await self.get_proj_account(proj_id=proj_id)
+        rsv = await self.get_reservation_account(proj_id=proj_id)
+        vlab = await self.get_vlab_account(vlab_id=proj.vlab_id)
         sys = await self.get_system_account()
-        return Accounts(sys=sys, vlab=vlab, proj=proj, rsv=rsv)
+        accounts = Accounts(sys=sys, vlab=vlab, proj=proj, rsv=rsv)
+        if not for_update:
+            return accounts
+        to_lock = {
+            account_type: getattr(accounts, field)
+            for account_type, field in _ACCOUNTS_FIELDS.items()
+            if account_type in for_update
+        }
+        locked = await self.lock_accounts([account.id for account in to_lock.values()])
+        updates = {}
+        for account_type, account in to_lock.items():
+            row = locked[account.id]
+            if account_type != AccountType.SYS and not row.enabled:
+                # Consistent with the getters, that only return enabled accounts
+                err = f"Account {row.id} has been disabled"
+                raise NoResultFound(err)
+            updates[_ACCOUNTS_FIELDS[account_type]] = type(account).model_validate(row)
+        return accounts.model_copy(update=updates)
 
     async def get_proj_accounts_for_vlab(self, vlab_id: UUID) -> list[ProjAccount]:
         """Return all the projects for the specified virtual-lab."""
@@ -114,26 +110,36 @@ class AccountRepository(BaseRepository):
         result = (await self.db.execute(query)).scalars()
         return [ProjAccount.model_validate(row) for row in result]
 
-    async def lock_accounts(self, account_ids: list[UUID]) -> None:
-        """Lock the given accounts in deterministic order to avoid deadlocks."""
+    async def lock_accounts(self, account_ids: Iterable[UUID]) -> dict[UUID, Account]:
+        """Lock the given accounts and return their current state, indexed by id.
+
+        This is the only method that should be used to lock accounts: the rows are always
+        locked in ascending id order, so concurrent transactions locking overlapping sets
+        of accounts cannot deadlock each other, provided that each transaction locks all
+        the accounts that it needs with a single call, before modifying any of them.
+
+        The returned rows are read after acquiring the locks, so they contain the latest
+        committed values (e.g. the balance), even if the same accounts were already loaded
+        in the session before.
+        """
+        account_ids = set(account_ids)
         if not account_ids:
-            return
-        await self.db.execute(
-            sa.select(Account.id)
+            return {}
+        query = (
+            sa.select(Account)
             .where(Account.id.in_(account_ids))
             .order_by(Account.id)
             .with_for_update()
+            .execution_options(populate_existing=True)
         )
+        rows = (await self.db.execute(query)).scalars().all()
+        if missing := account_ids.difference(row.id for row in rows):
+            err = f"Accounts not found: {sorted(missing)}"
+            raise NoResultFound(err)
+        return {row.id: row for row in rows}
 
-    async def get_reservation_accounts(
-        self, proj_ids: list[UUID], *, for_update: bool = False
-    ) -> list[RsvAccount]:
-        """Return the reservation accounts for the given project ids.
-
-        Args:
-            proj_ids: list of project UUIDs.
-            for_update: if True, locks the selected rows against concurrent updates.
-        """
+    async def get_reservation_accounts(self, proj_ids: list[UUID]) -> list[RsvAccount]:
+        """Return the reservation accounts for the given project ids."""
         if not proj_ids:
             return []
         query = sa.select(Account).where(
@@ -143,8 +149,6 @@ class AccountRepository(BaseRepository):
                 Account.enabled == true(),
             )
         )
-        if for_update:
-            query = query.with_for_update()
         rows = (await self.db.execute(query)).scalars()
         result = [RsvAccount.model_validate(row) for row in rows]
         if len(result) < len(proj_ids):

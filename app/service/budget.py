@@ -30,7 +30,7 @@ async def assign(repos: RepositoryGroup, vlab_id: UUID, proj_id: UUID, amount: D
     now = utcnow()
     with ensure_result(error_message="Account not found"):
         accounts = await repos.account.get_accounts_by_proj_id(
-            proj_id=proj_id, for_update={AccountType.VLAB}
+            proj_id=proj_id, for_update={AccountType.VLAB, AccountType.PROJ}
         )
     if accounts.vlab.id != vlab_id:
         raise ApiError(
@@ -56,7 +56,7 @@ async def reverse(repos: RepositoryGroup, vlab_id: UUID, proj_id: UUID, amount: 
     now = utcnow()
     with ensure_result(error_message="Account not found"):
         accounts = await repos.account.get_accounts_by_proj_id(
-            proj_id=proj_id, for_update={AccountType.PROJ}
+            proj_id=proj_id, for_update={AccountType.PROJ, AccountType.VLAB}
         )
     if accounts.vlab.id != vlab_id:
         raise ApiError(
@@ -83,9 +83,7 @@ async def move(
     """Move a budget between projects belonging to the same virtual lab."""
     now = utcnow()
     with ensure_result(error_message="Account not found"):
-        debited_accounts = await repos.account.get_accounts_by_proj_id(
-            proj_id=debited_from, for_update={AccountType.PROJ}
-        )
+        debited_accounts = await repos.account.get_accounts_by_proj_id(proj_id=debited_from)
         credited_accounts = await repos.account.get_accounts_by_proj_id(proj_id=credited_to)
     if debited_from == credited_to:
         raise ApiError(
@@ -102,7 +100,9 @@ async def move(
             message="The credited project doesn't belong to the virtual-lab",
             error_code=ApiErrorCode.INVALID_REQUEST,
         )
-    if debited_accounts.proj.balance < amount:
+    # Lock both projects together to avoid deadlocks, and check the balance read after locking
+    locked = await repos.account.lock_accounts([debited_from, credited_to])
+    if locked[debited_from].balance < amount:
         raise ApiError(
             message="Insufficient funds in the debited account",
             error_code=ApiErrorCode.INVALID_REQUEST,
@@ -120,7 +120,9 @@ async def grant(repos: RepositoryGroup, proj_id: UUID, amount: Decimal) -> None:
     """Top-up a vlab and assign the budget to a project in one atomic transaction."""
     now = utcnow()
     with ensure_result(error_message="Account not found"):
-        accounts = await repos.account.get_accounts_by_proj_id(proj_id=proj_id)
+        accounts = await repos.account.get_accounts_by_proj_id(
+            proj_id=proj_id, for_update={AccountType.SYS, AccountType.VLAB, AccountType.PROJ}
+        )
     await repos.ledger.insert_transaction(
         amount=amount,
         debited_from=accounts.sys.id,
@@ -142,7 +144,7 @@ async def deplete_project(repos: RepositoryGroup, proj_id: UUID) -> Decimal:
     now = utcnow()
     with ensure_result(error_message="Account not found"):
         accounts = await repos.account.get_accounts_by_proj_id(
-            proj_id=proj_id, for_update={AccountType.PROJ}
+            proj_id=proj_id, for_update={AccountType.PROJ, AccountType.SYS}
         )
     amount = accounts.proj.balance
     if amount <= D0:
@@ -166,29 +168,33 @@ async def deplete_virtual_lab(repos: RepositoryGroup, vlab_id: UUID) -> Decimal:
     with ensure_result(error_message="Virtual lab not found"):
         vlab = await repos.account.get_vlab_account(vlab_id=vlab_id)
     projects = await repos.account.get_proj_accounts_for_vlab(vlab_id=vlab_id)
-    # Lock all involved accounts up front in deterministic order to avoid deadlocks
-    all_ids = sorted([system_account.id, vlab.id, *(p.id for p in projects)])
-    await repos.account.lock_accounts(all_ids)
+    # Lock all involved accounts up front to avoid deadlocks, and use the balances read after
+    # acquiring the locks, because they may have been updated by concurrent transactions
+    locked = await repos.account.lock_accounts(
+        [system_account.id, vlab.id, *(p.id for p in projects)]
+    )
     total_amount = D0
     for proj in projects:
-        if proj.balance > D0:
+        proj_balance = locked[proj.id].balance
+        if proj_balance > D0:
             await repos.ledger.insert_transaction(
-                amount=proj.balance,
+                amount=proj_balance,
                 debited_from=proj.id,
                 credited_to=system_account.id,
                 transaction_datetime=now,
                 transaction_type=TransactionType.DEPLETE,
                 properties={"reason": "deplete_project"},
             )
-            total_amount += proj.balance
-    if vlab.balance > D0:
+            total_amount += proj_balance
+    vlab_balance = locked[vlab.id].balance
+    if vlab_balance > D0:
         await repos.ledger.insert_transaction(
-            amount=vlab.balance,
+            amount=vlab_balance,
             debited_from=vlab.id,
             credited_to=system_account.id,
             transaction_datetime=now,
             transaction_type=TransactionType.DEPLETE,
             properties={"reason": "deplete_vlab"},
         )
-        total_amount += vlab.balance
+        total_amount += vlab_balance
     return total_amount
