@@ -168,7 +168,7 @@ def _oneshot_reservation(ids: dict[str, UUID], count: int) -> ServiceCall:
         ),
         pytest.param(
             ["sys", "vlab", "proj2", "proj", "rsv", "rsv2"],
-            ["proj", "proj2"],
+            ["vlab", "proj", "proj2"],
             lambda ids: (
                 lambda repos: budget.move(
                     repos, ids["vlab"], ids["proj"], ids["proj2"], Decimal(10)

@@ -35,7 +35,7 @@ def _account_not_found() -> ApiError:
     )
 
 
-def _check_proj_in_vlab(proj: Account, vlab_id: UUID, *, label: str = "project") -> None:
+def _check_proj_in_vlab(proj: Account, vlab_id: UUID, *, label: str) -> None:
     """Check that the account is an enabled project belonging to the given virtual lab."""
     if proj.account_type != AccountType.PROJ or not proj.enabled:
         raise _account_not_found()
@@ -46,24 +46,32 @@ def _check_proj_in_vlab(proj: Account, vlab_id: UUID, *, label: str = "project")
         )
 
 
-async def _lock_vlab_and_proj(
-    repos: RepositoryGroup, vlab_id: UUID, proj_id: UUID
-) -> tuple[Account, Account]:
-    """Lock the virtual lab and the project, and return them after checking their consistency."""
+async def _lock_vlab_and_projs(
+    repos: RepositoryGroup, vlab_id: UUID, projs: dict[UUID, str]
+) -> tuple[Account, dict[UUID, Account]]:
+    """Lock the virtual lab and the projects, and return them after checking their consistency.
+
+    Args:
+        repos: repository group.
+        vlab_id: virtual lab UUID.
+        projs: dict {proj_id: label}, where the label is used in the error messages.
+    """
     with ensure_result(error_message="Account not found"):
-        locked = await repos.account.lock_accounts([vlab_id, proj_id])
-    vlab, proj = locked[vlab_id], locked[proj_id]
-    _check_proj_in_vlab(proj, vlab_id)
-    # the project belongs to the virtual lab, so the account type is guaranteed to be VLAB
+        locked = await repos.account.lock_accounts([vlab_id, *projs])
+    for proj_id, label in projs.items():
+        _check_proj_in_vlab(locked[proj_id], vlab_id, label=label)
+    # the projects belong to the virtual lab, so the account type is guaranteed to be VLAB
+    vlab = locked[vlab_id]
     if not vlab.enabled:
         raise _account_not_found()
-    return vlab, proj
+    return vlab, {proj_id: locked[proj_id] for proj_id in projs}
 
 
 async def assign(repos: RepositoryGroup, vlab_id: UUID, proj_id: UUID, amount: Decimal) -> None:
     """Move a budget from vlab_id to proj_id."""
     now = utcnow()
-    vlab, proj = await _lock_vlab_and_proj(repos, vlab_id=vlab_id, proj_id=proj_id)
+    vlab, projs = await _lock_vlab_and_projs(repos, vlab_id=vlab_id, projs={proj_id: "project"})
+    proj = projs[proj_id]
     if vlab.balance < amount:
         raise ApiError(
             message="Insufficient funds in the virtual-lab account",
@@ -81,7 +89,8 @@ async def assign(repos: RepositoryGroup, vlab_id: UUID, proj_id: UUID, amount: D
 async def reverse(repos: RepositoryGroup, vlab_id: UUID, proj_id: UUID, amount: Decimal) -> None:
     """Move a budget from proj_id to vlab_id."""
     now = utcnow()
-    vlab, proj = await _lock_vlab_and_proj(repos, vlab_id=vlab_id, proj_id=proj_id)
+    vlab, projs = await _lock_vlab_and_projs(repos, vlab_id=vlab_id, projs={proj_id: "project"})
+    proj = projs[proj_id]
     if proj.balance < amount:
         raise ApiError(
             message="Insufficient funds in the project account",
@@ -101,18 +110,18 @@ async def move(
 ) -> None:
     """Move a budget between projects belonging to the same virtual lab."""
     now = utcnow()
-    # the virtual lab isn't modified, so it doesn't need to be locked
-    with ensure_result(error_message="Account not found"):
-        await repos.account.get_vlab_account(vlab_id=vlab_id)
-        locked = await repos.account.lock_accounts([debited_from, credited_to])
-    debited, credited = locked[debited_from], locked[credited_to]
-    _check_proj_in_vlab(debited, vlab_id, label="debited project")
-    _check_proj_in_vlab(credited, vlab_id, label="credited project")
     if debited_from == credited_to:
         raise ApiError(
             message="The debited and credited accounts must be different",
             error_code=ApiErrorCode.INVALID_REQUEST,
         )
+    # the virtual lab isn't modified, but it's locked to check its status consistently
+    _, projs = await _lock_vlab_and_projs(
+        repos,
+        vlab_id=vlab_id,
+        projs={debited_from: "debited project", credited_to: "credited project"},
+    )
+    debited = projs[debited_from]
     if debited.balance < amount:
         raise ApiError(
             message="Insufficient funds in the debited account",
