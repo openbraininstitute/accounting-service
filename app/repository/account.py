@@ -130,6 +130,7 @@ class AccountRepository(BaseRepository):
             .where(Account.id.in_(account_ids))
             .order_by(Account.id)
             .with_for_update()
+            # refresh the accounts already in the session, or their values could be stale
             .execution_options(populate_existing=True)
         )
         rows = (await self.db.execute(query)).scalars().all()
