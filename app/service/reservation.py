@@ -29,10 +29,10 @@ async def _make_reservation(
 ) -> MakeReservationOut:
     """Make the job reservation."""
     reserving_at = utcnow()
-    # retrieve the accounts while locking the project account against concurrent updates
+    # retrieve the accounts while locking the involved accounts against concurrent updates
     with ensure_result(error_message="Account not found"):
         accounts = await repos.account.get_accounts_by_proj_id(
-            proj_id=reservation_request.proj_id, for_update={AccountType.PROJ}
+            proj_id=reservation_request.proj_id, for_update={AccountType.PROJ, AccountType.RSV}
         )
     available_amount = accounts.proj.balance
     price = await repos.price.get_price(
