@@ -1,9 +1,11 @@
 """Budget service."""
 
 from decimal import Decimal
+from http import HTTPStatus
 from uuid import UUID
 
 from app.constants import D0, AccountType, TransactionType
+from app.db.model import Account
 from app.errors import ApiError, ApiErrorCode, ensure_result
 from app.repository.group import RepositoryGroup
 from app.utils import utcnow
@@ -25,27 +27,52 @@ async def top_up(repos: RepositoryGroup, vlab_id: UUID, amount: Decimal) -> None
     )
 
 
+def _account_not_found() -> ApiError:
+    return ApiError(
+        message="Account not found",
+        error_code=ApiErrorCode.ENTITY_NOT_FOUND,
+        http_status_code=HTTPStatus.NOT_FOUND,
+    )
+
+
+def _check_proj_in_vlab(proj: Account, vlab_id: UUID, *, label: str = "project") -> None:
+    """Check that the account is an enabled project belonging to the given virtual lab."""
+    if proj.account_type != AccountType.PROJ or not proj.enabled:
+        raise _account_not_found()
+    if proj.parent_id != vlab_id:
+        raise ApiError(
+            message=f"The {label} doesn't belong to the virtual-lab",
+            error_code=ApiErrorCode.INVALID_REQUEST,
+        )
+
+
+async def _lock_vlab_and_proj(
+    repos: RepositoryGroup, vlab_id: UUID, proj_id: UUID
+) -> tuple[Account, Account]:
+    """Lock the virtual lab and the project, and return them after checking their consistency."""
+    with ensure_result(error_message="Account not found"):
+        locked = await repos.account.lock_accounts([vlab_id, proj_id])
+    vlab, proj = locked[vlab_id], locked[proj_id]
+    _check_proj_in_vlab(proj, vlab_id)
+    # the project belongs to the virtual lab, so the account type is guaranteed to be VLAB
+    if not vlab.enabled:
+        raise _account_not_found()
+    return vlab, proj
+
+
 async def assign(repos: RepositoryGroup, vlab_id: UUID, proj_id: UUID, amount: Decimal) -> None:
     """Move a budget from vlab_id to proj_id."""
     now = utcnow()
-    with ensure_result(error_message="Account not found"):
-        accounts = await repos.account.get_accounts_by_proj_id(
-            proj_id=proj_id, for_update={AccountType.VLAB, AccountType.PROJ}
-        )
-    if accounts.vlab.id != vlab_id:
-        raise ApiError(
-            message="The project doesn't belong to the virtual-lab",
-            error_code=ApiErrorCode.INVALID_REQUEST,
-        )
-    if accounts.vlab.balance < amount:
+    vlab, proj = await _lock_vlab_and_proj(repos, vlab_id=vlab_id, proj_id=proj_id)
+    if vlab.balance < amount:
         raise ApiError(
             message="Insufficient funds in the virtual-lab account",
             error_code=ApiErrorCode.INVALID_REQUEST,
         )
     await repos.ledger.insert_transaction(
         amount=amount,
-        debited_from=accounts.vlab.id,
-        credited_to=accounts.proj.id,
+        debited_from=vlab.id,
+        credited_to=proj.id,
         transaction_datetime=now,
         transaction_type=TransactionType.ASSIGN_BUDGET,
     )
@@ -54,24 +81,16 @@ async def assign(repos: RepositoryGroup, vlab_id: UUID, proj_id: UUID, amount: D
 async def reverse(repos: RepositoryGroup, vlab_id: UUID, proj_id: UUID, amount: Decimal) -> None:
     """Move a budget from proj_id to vlab_id."""
     now = utcnow()
-    with ensure_result(error_message="Account not found"):
-        accounts = await repos.account.get_accounts_by_proj_id(
-            proj_id=proj_id, for_update={AccountType.PROJ, AccountType.VLAB}
-        )
-    if accounts.vlab.id != vlab_id:
-        raise ApiError(
-            message="The project doesn't belong to the virtual-lab",
-            error_code=ApiErrorCode.INVALID_REQUEST,
-        )
-    if accounts.proj.balance < amount:
+    vlab, proj = await _lock_vlab_and_proj(repos, vlab_id=vlab_id, proj_id=proj_id)
+    if proj.balance < amount:
         raise ApiError(
             message="Insufficient funds in the project account",
             error_code=ApiErrorCode.INVALID_REQUEST,
         )
     await repos.ledger.insert_transaction(
         amount=amount,
-        debited_from=accounts.proj.id,
-        credited_to=accounts.vlab.id,
+        debited_from=proj.id,
+        credited_to=vlab.id,
         transaction_datetime=now,
         transaction_type=TransactionType.REVERSE_BUDGET,
     )
@@ -82,27 +101,19 @@ async def move(
 ) -> None:
     """Move a budget between projects belonging to the same virtual lab."""
     now = utcnow()
+    # the virtual lab isn't modified, so it doesn't need to be locked
     with ensure_result(error_message="Account not found"):
-        debited_accounts = await repos.account.get_accounts_by_proj_id(proj_id=debited_from)
-        credited_accounts = await repos.account.get_accounts_by_proj_id(proj_id=credited_to)
+        await repos.account.get_vlab_account(vlab_id=vlab_id)
+        locked = await repos.account.lock_accounts([debited_from, credited_to])
+    debited, credited = locked[debited_from], locked[credited_to]
+    _check_proj_in_vlab(debited, vlab_id, label="debited project")
+    _check_proj_in_vlab(credited, vlab_id, label="credited project")
     if debited_from == credited_to:
         raise ApiError(
             message="The debited and credited accounts must be different",
             error_code=ApiErrorCode.INVALID_REQUEST,
         )
-    if debited_accounts.vlab.id != vlab_id:
-        raise ApiError(
-            message="The debited project doesn't belong to the virtual-lab",
-            error_code=ApiErrorCode.INVALID_REQUEST,
-        )
-    if credited_accounts.vlab.id != vlab_id:
-        raise ApiError(
-            message="The credited project doesn't belong to the virtual-lab",
-            error_code=ApiErrorCode.INVALID_REQUEST,
-        )
-    # Lock both projects together to avoid deadlocks, and check the balance read after locking
-    locked = await repos.account.lock_accounts([debited_from, credited_to])
-    if locked[debited_from].balance < amount:
+    if debited.balance < amount:
         raise ApiError(
             message="Insufficient funds in the debited account",
             error_code=ApiErrorCode.INVALID_REQUEST,
